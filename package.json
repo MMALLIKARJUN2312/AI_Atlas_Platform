@@ -2,7 +2,7 @@
   "name": "ai-atlas-platform",
   "private": true,
   "version": "1.0.0",
-  "packageManager": "pnpm@11.11.0",
+  "packageManager": "pnpm@11.13.0",
   "type": "module",
   "scripts": {
     "dev": "turbo dev",
