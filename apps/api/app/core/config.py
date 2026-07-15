@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Application settings."""
     
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore")
+    model_config = SettingsConfigDict(env_file="../../.env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore")
     
     APP_NAME: str = "AI Atlas Platform"
     ENVIRONMENT : str = "development"
@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     POSTGRES_HOST : str = Field(default="localhost")
     POSTGRES_PORT : int = Field(default=5432)
     
-    DATABASE_URL : str = "postgresql+psycopg://postgres:postgres@localhost:5432/ai_atlas"
+    DATABASE_URL : str = "postgresql+psycopg://postgres:postgres@localhost:5434/ai_atlas"
     
     REDIS_URL : str = "redis://localhost:6379"
     

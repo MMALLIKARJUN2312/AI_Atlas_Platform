@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg18
+    container_name: ai_atlas_postgres
+
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    ports:
+      - "5434:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ./infrastructure/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ai_atlas"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:8-alpine
+
+    container_name: ai_atlas_redis
+
+    restart: unless-stopped
+
+    ports:
+      - "6379:6379"
+
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
