@@ -4,7 +4,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
-class Knowledge_chunk(BaseModel):
+class KnowledgeChunk(BaseModel):
     """
     Represents one semantic chunk generated from a Knowledge Document.
     """
