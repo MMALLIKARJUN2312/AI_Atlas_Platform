@@ -24,3 +24,5 @@ orjson
 pandas
 
 langchain-text-splitters
+
+google-genai
