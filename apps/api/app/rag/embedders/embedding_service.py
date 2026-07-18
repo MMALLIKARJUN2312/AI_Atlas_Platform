@@ -14,3 +14,6 @@ class EmbeddingService:
         
     def generate(self, chunks : list[KnowledgeChunk]) -> list[EmbeddedChunk]:
         return self.embedder.embed(chunks)
+    
+    def embed_query(self, query: str) -> list[float]:
+        return self.embedder.embed_query(query)

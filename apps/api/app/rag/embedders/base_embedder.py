@@ -14,3 +14,6 @@ class BaseEmbedder(ABC):
         """
         raise NotImplementedError
         
+    @abstractmethod
+    def embed_query(self, query: str) -> list[float]:
+        pass

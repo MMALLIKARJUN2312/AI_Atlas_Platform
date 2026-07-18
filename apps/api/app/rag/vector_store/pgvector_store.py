@@ -56,10 +56,11 @@ class PGVectorStore:
     def get_document_chunks(self, document_id : str) -> list[Embedding]:
         return list(self.db.scalars(select(Embedding).where(Embedding.document_id == document_id).order_by(Embedding.chunk_index)))
     
-    def similarity_search(self, embedding : list[float], top_k : int = 10) -> list[Embedding]:
-        statement = (select(Embedding).order_by(Embedding.embedding.cosine_distance(embedding)).limit(top_k))
+    def similarity_search(self, embedding : list[float], top_k : int = 10) -> list[tuple[Embedding, float]]:
+        similarity = 1 - Embedding.embedding.cosine_distance(embedding)
+        statement = (select(Embedding, similarity.label("score")).order_by(Embedding.embedding.cosine_distance(embedding)).limit(top_k))
         
-        return list(self.db.scalars(statement))
+        return list(self.db.execute(statement).all())
     
     def delete_document(self, document_id : str) -> None:
         self.db.execute(delete(Embedding).where(Embedding.document_id == document_id))

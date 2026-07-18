@@ -35,3 +35,8 @@ class GeminiEmbedder(BaseEmbedder):
             )
             
         return results
+    
+    def embed_query(self, query: str) -> list[float]:
+        response = self.client.models.embed_content(model=self.config.model,contents=query,)
+
+        return response.embeddings[0].values

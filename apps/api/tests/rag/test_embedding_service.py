@@ -1,6 +1,5 @@
 from datetime import datetime, UTC
 
-from app.rag.embedders.base_embedder import BaseEmbedder
 from app.rag.embedders.embedding_config import EmbeddingConfig
 from app.rag.embedders.embedding_service import EmbeddingService
 from app.rag.schemas.document_type import DocumentType
@@ -8,22 +7,20 @@ from app.rag.schemas.embedded_chunk import EmbeddedChunk
 from app.rag.schemas.knowledge_chunk import KnowledgeChunk
 from app.rag.schemas.knowledge_document import KnowledgeDocument
 
+class FakeEmbedder:
 
-class FakeEmbedder(BaseEmbedder):
-    def embed(
-        self,
-        chunks: list[KnowledgeChunk],
-    ) -> list[EmbeddedChunk]:
+    def embed(self, chunks):
         return [
             EmbeddedChunk(
-                chunk=chunk,
-                embedding=[0.1, 0.2, 0.3],
+                chunk=chunks[0],
+                embedding=[0.1, 0.2],
                 model="fake-model",
-                dimensions=3,
+                dimensions=2,
             )
-            for chunk in chunks
         ]
 
+    def embed_query(self, query: str):
+        return [0.1, 0.2]
 
 def test_embedding_service_generate():
     document = KnowledgeDocument(
@@ -55,5 +52,5 @@ def test_embedding_service_generate():
     assert len(embedded_chunks) == 1
     assert embedded_chunks[0].chunk.chunk_id == "chunk-1"
     assert embedded_chunks[0].model == "fake-model"
-    assert embedded_chunks[0].dimensions == 3
-    assert embedded_chunks[0].embedding == [0.1, 0.2, 0.3]
+    assert embedded_chunks[0].dimensions == 2
+    assert embedded_chunks[0].embedding == [0.1, 0.2]
