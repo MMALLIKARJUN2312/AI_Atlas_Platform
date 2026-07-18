@@ -6,7 +6,7 @@ from uuid import uuid4
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import DateTime, Index, Integer, String, Text, func
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database.base import Base
@@ -31,6 +31,7 @@ class Embedding(Base):
     embedding : Mapped[list[float]] = mapped_column(Vector(VectorConfig.EMBEDDING_DIMENSIONS), nullable=False)
     embedding_model : Mapped[str] = mapped_column(String(100), nullable=False)
     embedding_dimensions : Mapped[int] = mapped_column(Integer, nullable=False)
+    search_vector : Mapped[str] = mapped_column(TSVECTOR, nullable=False)
     created_at : Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at : Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     
