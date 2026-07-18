@@ -26,3 +26,5 @@ pandas
 langchain-text-splitters
 
 google-genai
+
+pgvector

@@ -1,6 +1,6 @@
 from datetime import datetime, UTC
 
-from app.models.sector import Sector
+from app.database.models.sector import Sector
 from app.rag.builders.sector_builder import SectorDocumentBuilder
 from app.rag.schemas.document_type import DocumentType
 

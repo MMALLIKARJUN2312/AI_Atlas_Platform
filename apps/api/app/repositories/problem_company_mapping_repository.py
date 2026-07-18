@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.problem_company_mapping import ProblemCompanyMapping
+from app.database.models.problem_company_mapping import ProblemCompanyMapping
 from app.repositories.base_repository import BaseRepository
 
 class ProblemCompanyMappingRepository(BaseRepository[ProblemCompanyMapping]):

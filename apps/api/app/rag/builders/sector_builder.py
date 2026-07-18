@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from app.models.sector import Sector
+from app.database.models.sector import Sector
 from app.rag.builders.base_builder import BaseDocumentBuilder
 from app.rag.schemas.document_type import DocumentType
 from app.rag.schemas.knowledge_document import KnowledgeDocument

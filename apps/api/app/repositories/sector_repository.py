@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.models.sector import Sector
+from app.database.models.sector import Sector
 from app.repositories.base_repository import BaseRepository
 
 class SectorRepository(BaseRepository[Sector]):

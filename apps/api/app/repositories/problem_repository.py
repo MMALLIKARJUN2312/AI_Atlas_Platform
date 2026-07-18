@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.models.problem import Problem
+from app.database.models.problem import Problem
 from app.repositories.base_repository import BaseRepository
 
 class ProblemRepository(BaseRepository[Problem]):

@@ -4,6 +4,6 @@ class Base(DeclarativeBase):
     pass
 
 # Import every model so Alembic discovers them.
-import app.models  # noqa: E402,F401
+import app.database.models  # noqa: E402,F401
 
 target_metadata = Base.metadata

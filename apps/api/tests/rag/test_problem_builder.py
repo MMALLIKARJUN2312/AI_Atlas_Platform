@@ -1,6 +1,6 @@
 from datetime import datetime, UTC
 
-from app.models.problem import Problem
+from app.database.models.problem import Problem
 from app.rag.builders.problem_builder import ProblemDocumentBuilder
 from app.rag.schemas.document_type import DocumentType
 

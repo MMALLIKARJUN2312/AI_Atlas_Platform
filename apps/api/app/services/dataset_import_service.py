@@ -6,10 +6,10 @@ from app.ingestion.constants import (COMPANIES_CSV, PROBLEMS_CSV, MAPPINGS_CSV, 
 from app.ingestion.readers import read_csv
 from app.ingestion.validators import validate_dataframe
 
-from app.models.company import Company
-from app.models.problem import Problem
-from app.models.problem_company_mapping import ProblemCompanyMapping
-from app.models.sector import Sector
+from app.database.models.company import Company
+from app.database.models.problem import Problem
+from app.database.models.problem_company_mapping import ProblemCompanyMapping
+from app.database.models.sector import Sector
 
 from app.repositories.company_repository import CompanyRepository
 from app.repositories.problem_repository import ProblemRepository

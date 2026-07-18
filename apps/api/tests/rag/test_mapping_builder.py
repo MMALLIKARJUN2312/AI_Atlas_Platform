@@ -1,6 +1,6 @@
 from datetime import datetime, UTC
 
-from app.models.problem_company_mapping import ProblemCompanyMapping
+from app.database.models.problem_company_mapping import ProblemCompanyMapping
 from app.rag.builders.mapping_builder import MappingDocumentBuilder
 from app.rag.schemas.document_type import DocumentType
 

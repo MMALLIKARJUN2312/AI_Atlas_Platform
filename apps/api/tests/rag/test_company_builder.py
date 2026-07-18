@@ -1,6 +1,6 @@
 from datetime import datetime, UTC
 
-from app.models.company import Company
+from app.database.models.company import Company
 from app.rag.builders.company_builder import CompanyDocumentBuilder
 
 
