@@ -27,4 +27,7 @@ langchain-text-splitters
 
 google-genai
 
+pytest
+pytest-asyncio
+
 pgvector

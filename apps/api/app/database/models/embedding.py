@@ -34,4 +34,4 @@ class Embedding(Base):
     created_at : Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at : Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     
-    __table_args__ = (Index("ix_embeddings_document_chunk", "document_id", "chunk_index"))
+    __table_args__ = (Index("ix_embeddings_document_chunk", "document_id", "chunk_index"),)
