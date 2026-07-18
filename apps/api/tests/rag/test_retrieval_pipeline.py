@@ -27,6 +27,7 @@ def test_retrieval_pipeline():
         context_builder=ContextBuilder(),
     )
 
-    context = pipeline.retrieve_context("OpenAI")
+    output = pipeline.retrieve("OpenAI")
 
-    assert "OpenAI develops GPT models." in context
+    assert "OpenAI develops GPT models." in output.context
+    assert len(output.results) == 1

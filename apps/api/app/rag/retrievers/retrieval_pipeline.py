@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from app.rag.retrievers.context_builder import ContextBuilder
+from app.rag.retrievers.retrieval_output import RetrievalOutput
 from app.rag.retrievers.semantic_retriever import SemanticRetriever
 
 class RetrievalPipeline:
@@ -12,7 +13,8 @@ class RetrievalPipeline:
         self.retriever = retriever
         self.context_builder = context_builder
     
-    def retrieve_context(self, query : str) -> str:
+    def retrieve(self, query : str) -> RetrievalOutput:
         results = self.retriever.retrieve(query)
+        context = self.context_builder.build(results)
         
-        return self.context_builder.build(results)
+        return RetrievalOutput(context=context, results=results)
