@@ -17,3 +17,6 @@ class ProblemRepository(BaseRepository[Problem]):
         
     async def find_by_problem_id(self, problem_id : str) -> Problem | None:
         return await self.db.scalar(select(Problem).where(Problem.problem_id == problem_id))
+    
+    async def find_by_problem_statement(self, problem_statement: str) -> Problem | None:
+        return await self.db.scalar(select(Problem).where(Problem.problem_statement == problem_statement))
