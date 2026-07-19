@@ -1,7 +1,10 @@
 from app.ai.prompts.prompt_builder import PromptBuilder
 from app.ai.schemas.ask_ai_response import AskAIResponse
+from app.ai.schemas.llm_response import LLMResponse
+from app.ai.services.llm_service import LLMService
 from app.ai.services.ask_ai_service import AskAIService
 from app.ai.services.citation_service import CitationService
+from app.ai.services.response_validator import ResponseValidator
 from app.rag.retrievers.context_builder import ContextBuilder
 from app.rag.retrievers.retrieval_pipeline import RetrievalPipeline
 from app.rag.retrievers.retrieval_result import RetrievalResult
@@ -24,7 +27,7 @@ class FakeRetriever:
 
 class FakeLLM:
     def generate(self, *, system_prompt, user_prompt):
-        return "OpenAI develops GPT models."
+        return LLMResponse(text = "OpenAI develops GPT models.", model = "fake")
 
 
 def test_ask_ai_service():
@@ -33,11 +36,13 @@ def test_ask_ai_service():
         retriever=FakeRetriever(),
         context_builder=ContextBuilder(),
     )
+    
+    llm_service = LLMService(llm=FakeLLM(), validator=ResponseValidator())
 
     service = AskAIService(
         retrieval_pipeline=pipeline,
         prompt_builder=PromptBuilder(),
-        llm=FakeLLM(),
+        llm_service=llm_service,
         citation_service=CitationService(),
     )
 

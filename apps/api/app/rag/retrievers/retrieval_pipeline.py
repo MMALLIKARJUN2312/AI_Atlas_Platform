@@ -13,8 +13,8 @@ class RetrievalPipeline:
         self.retriever = retriever
         self.context_builder = context_builder
     
-    def retrieve(self, query : str) -> RetrievalOutput:
-        results = self.retriever.retrieve(query)
+    async def retrieve(self, query : str) -> RetrievalOutput:
+        results = await self.retriever.retrieve(query)
         context = self.context_builder.build(results)
         
         return RetrievalOutput(context=context, results=results)

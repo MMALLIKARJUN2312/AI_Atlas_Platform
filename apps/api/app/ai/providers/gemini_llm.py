@@ -3,18 +3,23 @@ from __future__ import annotations
 from google import genai
 
 from app.core.config import settings
+from app.ai.schemas.llm_request import LLMRequest
+from app.ai.schemas.llm_response import LLMResponse
 from app.ai.providers.base_llm import BaseLLM
+from app.ai.providers.llm_config import LLMConfig
 
 class GeminiLLM(BaseLLM):
     """
-    Gemini implementation of BaseLLM
+    Gemini implementation
     """
     
-    def __init__(self, model : str):
-        self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
-        self.mode = model
+    def __init__(self, config : LLMConfig):
+        self.config = config
+        self.client = genai.Client(api_key=settings.LLM_API_KEY)
         
-    def generate(self, *, system_prompt : str, user_prompt : str) -> str:
-        response = self.client.models.generate_content(model=self.model, contents=[system_prompt, user_prompt])
+    def generate(self, request : LLMRequest) -> LLMResponse:
+        response = self.client.models.generate_content(model=self.config.model, 
+            contents=[request.system_prompt, request.user_prompt], config={"temperature" : request.temperature, "max_output_tokens" : request.max_output_tokens}
+        )
     
-        return response.text.strip()
+        return LLMResponse(text = response.text.strip(), model = self.config.model)

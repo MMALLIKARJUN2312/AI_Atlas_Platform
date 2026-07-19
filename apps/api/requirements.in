@@ -13,8 +13,6 @@ python-dotenv
 redis
 celery
 
-httpx
-
 structlog
 
 python-multipart
@@ -31,3 +29,10 @@ pytest
 pytest-asyncio
 
 pgvector
+
+starlette
+anyio
+
+langsmith
+
+httpx2

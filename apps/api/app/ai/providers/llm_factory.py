@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from app.ai.providers.base_llm import BaseLLM
 from app.ai.providers.gemini_llm import GeminiLLM
+from app.ai.providers.llm_config import LLMConfig
 
 class LLMFactory:
     """
@@ -9,11 +10,10 @@ class LLMFactory:
     """
     
     @staticmethod
-    def create(provider : str, model : str) -> BaseLLM:
-        provider = provider.lower()
+    def create(config : LLMConfig) -> BaseLLM:
+    
+        if config.provider.lower() == "gemini":
+            return GeminiLLM(config)
         
-        if provider == "gemini":
-            return GeminiLLM(model)
-        
-        raise ValueError(f"Unsupported LLM provider : {provider}")
+        raise ValueError(f"Unsupported LLM provider : {config.provider}")
     
