@@ -11,7 +11,7 @@ from app.rag.schemas.embedded_chunk import EmbeddedChunk
 class GeminiEmbedder(BaseEmbedder):
     
     def __init__(self, config : EmbeddingConfig):
-        self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
+        self.client = genai.Client(api_key=settings.LLM_API_KEY)
         self.config = config
         
     def embed(self, chunks : list[KnowledgeChunk]) -> list[EmbeddedChunk]:

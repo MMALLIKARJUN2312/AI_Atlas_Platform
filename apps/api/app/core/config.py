@@ -24,7 +24,12 @@ class Settings(BaseSettings):
     
     REDIS_URL : str = "redis://localhost:6379"
     
-    GEMINI_API_KEY : str = ""
+    LLM_PROVIDER: str = ""
+    LLM_MODEL: str = ""
+    LLM_API_KEY: str = ""
+
+    EMBEDDING_PROVIDER: str = ""
+    EMBEDDING_MODEL: str = ""
     
     GNEWS_API_KEY : str = ""
     
