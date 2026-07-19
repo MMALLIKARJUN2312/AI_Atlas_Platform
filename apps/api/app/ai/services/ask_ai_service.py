@@ -20,10 +20,16 @@ class AskAIService:
         
     async def ask(self, question : str) -> AskAIResponse:
         retrieval = await self.retrieval_pipeline.retrieve(question)
-        prompt = self.prompt_builder.build(query=question, context=retrieval.context)
+
+        if not retrieval.results:
+            return AskAIResponse(
+                answer="I couldn't find enough information in the knowledge base to answer that question.",
+                citations=[],
+            )
+
+        prompt = self.prompt_builder.build(query=question, context=retrieval.context,)
         request = LLMRequest(system_prompt=prompt.system_prompt, user_prompt=prompt.user_prompt)
         llm_response = self.llm_service.generate(request)
         citations = self.citation_service.build(retrieval.results)
-        
+
         return AskAIResponse(answer=llm_response.text, citations=citations)
-    
