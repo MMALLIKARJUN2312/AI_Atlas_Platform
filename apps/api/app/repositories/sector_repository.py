@@ -16,4 +16,10 @@ class SectorRepository(BaseRepository[Sector]):
         return await self.bulk_insert_ignore_conflicts(sectors, ["segment_name"])    
         
     async def find_by_segment_number(self, segment_number : int) -> Sector | None:
-        await self.db.scalar(select(Sector).where(Sector.segment_number == segment_number))
+        return await self.db.scalar(select(Sector).where(Sector.segment_number == segment_number))
+    
+    async def find_by_id(self, sector_id: int) -> Sector | None:
+        return await self.db.get(Sector, sector_id)
+
+    async def find_by_segment_name(self, segment_name: str) -> Sector | None:
+        return await self.db.scalar(select(Sector).where(Sector.segment_name == segment_name))
