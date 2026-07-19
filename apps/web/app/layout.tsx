@@ -1,21 +1,27 @@
 import type { Metadata } from "next";
-import "./globals.css";
+import { ReactNode } from "react";
+
+import { QueryProvider } from "@/providers/query-provider";
+import { ToastProvider } from "@/providers/toast-provider";
 
 export const metadata: Metadata = {
   title: "AI Atlas",
-  description: "Production-grade AI-powered intelligence platform for businesses and organizations.",
+  description: "AI Atlas Platform",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+type Props = {
+  children: ReactNode;
+};
+
+export default function RootLayout({ children }: Props) {
   return (
-    <html
-      lang="en"
-    >
-      <body>{children}</body>
+    <html lang="en">
+      <body>
+        <QueryProvider>
+          <ToastProvider />
+          {children}
+        </QueryProvider>
+      </body>
     </html>
   );
 }
