@@ -1,14 +1,28 @@
-import { ReactNode } from "react";
+import { PropsWithChildren } from "react";
 
-type Props = {
-  children: ReactNode;
-};
+import { cn } from "@/lib/utils";
+
+interface PageContainerProps
+  extends PropsWithChildren {
+  className?: string;
+}
 
 export function PageContainer({
   children,
-}: Props) {
+  className,
+}: PageContainerProps) {
   return (
-    <main className="min-h-screen p-8">
+    <main
+      className={cn(
+        "relative z-10",
+        "mx-auto",
+        "w-full",
+        "max-w-7xl",
+        "px-6",
+        "py-8",
+        className
+      )}
+    >
       {children}
     </main>
   );

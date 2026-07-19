@@ -1,58 +1,46 @@
 "use client";
 
-import {
-  Building2,
-  LayoutDashboard,
-  MessageSquare,
-  Newspaper,
-  Shield,
-} from "lucide-react";
+import { navigation } from "@/lib/navigation";
 
-import { Card } from "@/components/ui";
-import { Logo } from "./logo";
+import { GlassPanel } from "@/components/ui";
+import {Logo} from "./logo";
 import { SidebarItem } from "./sidebar-item";
 
 export function Sidebar() {
   return (
-    <Card className="flex h-full w-72 flex-col p-6">
-
+    <GlassPanel
+      className="
+        sticky
+        top-6
+        flex
+        h-[calc(100vh-48px)]
+        w-72
+        flex-col
+        p-6
+      "
+    >
       <Logo />
 
-      <div className="mt-10 flex flex-col gap-2">
+      <nav className="mt-10 space-y-2">
+        {navigation.map((item) => (
+          <SidebarItem
+            key={item.href}
+            {...item}
+          />
+        ))}
+      </nav>
 
-        <SidebarItem
-          href="/"
-          label="Dashboard"
-          icon={LayoutDashboard}
-          active
-        />
+      <div className="mt-auto">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <p className="text-xs uppercase tracking-widest text-zinc-500">
+            Version
+          </p>
 
-        <SidebarItem
-          href="/companies"
-          label="Companies"
-          icon={Building2}
-        />
-
-        <SidebarItem
-          href="/ask-ai"
-          label="Ask AI"
-          icon={MessageSquare}
-        />
-
-        <SidebarItem
-          href="/news"
-          label="News"
-          icon={Newspaper}
-        />
-
-        <SidebarItem
-          href="/admin"
-          label="Admin"
-          icon={Shield}
-        />
-
+          <p className="mt-2 text-sm font-medium text-white">
+            Build v1.0
+          </p>
+        </div>
       </div>
-
-    </Card>
+    </GlassPanel>
   );
 }

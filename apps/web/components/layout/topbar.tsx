@@ -1,33 +1,30 @@
-import { Search } from "lucide-react";
+"use client";
 
-import { Input } from "@/components/ui";
+import { Menu } from "lucide-react";
 
-export function Topbar() {
+import { IconButton, SearchInput } from "@/components/ui";
+
+interface TopbarProps {
+  onMenuClick: () => void;
+}
+
+export function Topbar({
+  onMenuClick,
+}: TopbarProps) {
   return (
-    <header className="flex h-20 items-center justify-between">
-
-      <div className="w-96">
-
-        <div className="relative">
-
-          <Search
-            className="absolute left-4 top-3 text-zinc-500"
-            size={18}
-          />
-
-          <Input
-            className="pl-11"
-            placeholder="Search companies..."
-          />
-
-        </div>
-
+    <header className="sticky top-0 z-30 mb-10 flex items-center justify-between gap-6 backdrop-blur-xl">
+      <div className="lg:hidden">
+        <IconButton
+          onClick={onMenuClick}
+          aria-label="Open navigation"
+        >
+          <Menu size={18} />
+        </IconButton>
       </div>
 
-      <div className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-300">
-        AI Powered
+      <div className="ml-auto w-full max-w-xl">
+        <SearchInput placeholder="Search companies..." />
       </div>
-
     </header>
   );
 }
