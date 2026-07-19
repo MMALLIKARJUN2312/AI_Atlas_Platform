@@ -1,11 +1,16 @@
-from unittest.mock import MagicMock
+import pytest
+from unittest.mock import AsyncMock
 
 from app.rag.vector_store.pgvector_store import PGVectorStore
 
 
-def test_delete_document():
-    session = MagicMock()
+@pytest.mark.asyncio
+async def test_delete_document():
+
+    session = AsyncMock()
     store = PGVectorStore(session)
-    store.delete_document("company-1")
+
+    await store.delete_document("company-1")
+
     session.execute.assert_called_once()
     session.commit.assert_called_once()

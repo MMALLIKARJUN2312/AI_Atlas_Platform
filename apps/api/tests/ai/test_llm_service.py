@@ -6,12 +6,7 @@ from app.ai.services.response_validator import ResponseValidator
 
 class FakeLLM:
 
-    def generate(
-        self,
-        *,
-        system_prompt,
-        user_prompt,
-    ):
+    def generate(self, *, request: LLMRequest,):
 
         return LLMResponse(
             text="Hello World",
@@ -30,7 +25,7 @@ def test_llm_service():
         system_prompt="system",
         user_prompt="user",
     )
-    
+
     response = service.generate(request)
 
     assert response.text == "Hello World"

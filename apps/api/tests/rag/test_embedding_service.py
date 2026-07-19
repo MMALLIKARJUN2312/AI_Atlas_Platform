@@ -2,6 +2,7 @@ from datetime import datetime, UTC
 
 from app.rag.embedders.embedding_config import EmbeddingConfig
 from app.rag.embedders.embedding_service import EmbeddingService
+from app.rag.embedders.embedder_factory import EmbedderFactory
 from app.rag.schemas.document_type import DocumentType
 from app.rag.schemas.embedded_chunk import EmbeddedChunk
 from app.rag.schemas.knowledge_chunk import KnowledgeChunk
@@ -37,12 +38,20 @@ def test_embedding_service_generate():
     chunk = KnowledgeChunk(
         chunk_id="chunk-1",
         document_id=document.document_id,
+        document_type=document.document_type,
         chunk_index=0,
         text=document.content,
         metadata=document.metadata,
     )
 
-    service = EmbeddingService(config=EmbeddingConfig())
+    config = EmbeddingConfig(
+        provider="gemini",
+        model="gemini-embedding-001",
+    )
+
+    embedder = EmbedderFactory.create(config)
+
+    service = EmbeddingService(embedder)
 
     # Replace the real provider with a fake one.
     service.embedder = FakeEmbedder()

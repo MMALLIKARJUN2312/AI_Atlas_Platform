@@ -1,3 +1,5 @@
+import pytest
+
 from app.ai.prompts.prompt_builder import PromptBuilder
 from app.ai.schemas.ask_ai_response import AskAIResponse
 from app.ai.schemas.llm_response import LLMResponse
@@ -9,9 +11,8 @@ from app.rag.retrievers.context_builder import ContextBuilder
 from app.rag.retrievers.retrieval_pipeline import RetrievalPipeline
 from app.rag.retrievers.retrieval_result import RetrievalResult
 
-
 class FakeRetriever:
-    def retrieve(self, query):
+    async def retrieve(self, query):
         return [
             RetrievalResult(
                 document_id="company:1",
@@ -24,13 +25,12 @@ class FakeRetriever:
             )
         ]
 
-
 class FakeLLM:
-    def generate(self, *, system_prompt, user_prompt):
-        return LLMResponse(text = "OpenAI develops GPT models.", model = "fake")
+    def generate(self, request):
+        return LLMResponse(text="OpenAI develops GPT models.", model="fake")
 
-
-def test_ask_ai_service():
+@pytest.mark.asyncio
+async def test_ask_ai_service():
 
     pipeline = RetrievalPipeline(
         retriever=FakeRetriever(),
@@ -46,7 +46,7 @@ def test_ask_ai_service():
         citation_service=CitationService(),
     )
 
-    response = service.ask(
+    response = await service.ask(
         "What does OpenAI do?"
     )
 

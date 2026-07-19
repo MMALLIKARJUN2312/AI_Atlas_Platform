@@ -20,7 +20,7 @@ class RecursiveChunker(BaseChunker):
             separators = list(self.config.separators)
         )
         
-    def chunk(self, document : KnowledgeDocument) -> list[KnowledgeDocument]:
+    def chunk(self, document : KnowledgeDocument) -> list[KnowledgeChunk]:
         pieces = self.splitter.split_text(document.content)
         chunks : list[KnowledgeChunk] = []
         
@@ -28,6 +28,7 @@ class RecursiveChunker(BaseChunker):
             chunks.append(KnowledgeChunk(
                 chunk_id=str(uuid.uuid4()),
                 document_id = document.document_id,
+                document_type=document.document_type,
                 chunk_index = index,
                 text = text,
                 metadata = document.metadata

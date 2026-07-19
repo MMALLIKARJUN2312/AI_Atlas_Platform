@@ -1,3 +1,5 @@
+import pytest
+
 from app.rag.retrievers.context_builder import ContextBuilder
 from app.rag.retrievers.retrieval_pipeline import RetrievalPipeline
 from app.rag.retrievers.retrieval_result import RetrievalResult
@@ -5,8 +7,7 @@ from app.rag.retrievers.retrieval_result import RetrievalResult
 
 class FakeRetriever:
 
-    def retrieve(self, query):
-
+    async def retrieve(self, query):
         return [
             RetrievalResult(
                 document_id="1",
@@ -20,14 +21,15 @@ class FakeRetriever:
         ]
 
 
-def test_retrieval_pipeline():
+@pytest.mark.asyncio
+async def test_retrieval_pipeline():
 
     pipeline = RetrievalPipeline(
         retriever=FakeRetriever(),
         context_builder=ContextBuilder(),
     )
 
-    output = pipeline.retrieve("OpenAI")
+    output = await pipeline.retrieve("OpenAI")
 
     assert "OpenAI develops GPT models." in output.context
     assert len(output.results) == 1

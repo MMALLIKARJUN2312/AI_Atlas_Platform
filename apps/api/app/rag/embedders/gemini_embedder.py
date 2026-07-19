@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from google import genai
+from google.genai import types
 
 from app.core.config import settings
 from app.rag.embedders.base_embedder import BaseEmbedder
@@ -19,8 +20,11 @@ class GeminiEmbedder(BaseEmbedder):
         
         for chunk in chunks:
             response = self.client.models.embed_content(
-                model = self.config.model,
-                contents = chunk.text 
+            model=self.config.model,
+            contents=chunk.text,
+            config=types.EmbedContentConfig(
+                output_dimensionality=self.config.dimensions
+                ),
             )
             
             vector = response.embeddings[0].values
@@ -37,6 +41,12 @@ class GeminiEmbedder(BaseEmbedder):
         return results
     
     def embed_query(self, query: str) -> list[float]:
-        response = self.client.models.embed_content(model=self.config.model,contents=query,)
+        response = self.client.models.embed_content(
+            model=self.config.model,
+            contents=query,
+            config=types.EmbedContentConfig(
+                output_dimensionality=self.config.dimensions
+            ),
+        )
 
         return response.embeddings[0].values

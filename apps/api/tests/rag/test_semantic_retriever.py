@@ -1,12 +1,16 @@
+import pytest
+
 from app.rag.retrievers.semantic_retriever import SemanticRetriever
 
 
 class FakeEmbeddingService:
+
     def embed_query(self, query):
         return [0.1, 0.2]
 
 
 class FakeRecord:
+
     document_id = "company:1"
     chunk_id = "chunk-1"
     document_type = "company"
@@ -16,7 +20,8 @@ class FakeRecord:
 
 
 class FakeVectorStore:
-    def similarity_search(self, embedding, top_k):
+
+    async def similarity_search(self, embedding, top_k):
         return [
             (
                 FakeRecord(),
@@ -25,14 +30,17 @@ class FakeVectorStore:
         ]
 
 
-def test_semantic_retriever():
+@pytest.mark.asyncio
+async def test_semantic_retriever():
 
     retriever = SemanticRetriever(
         embedding_service=FakeEmbeddingService(),
         vector_store=FakeVectorStore(),
     )
 
-    results = retriever.retrieve("What does Siemens do?")
+    results = await retriever.retrieve(
+        "What does Siemens do?"
+    )
 
     assert len(results) == 1
     assert results[0].document_id == "company:1"

@@ -11,7 +11,7 @@ class BaseLLM(ABC):
     """
     
     @abstractmethod
-    def generate(self, *, request : LLMRequest) -> LLMResponse:
+    def generate(self, request : LLMRequest) -> LLMResponse:
         """
         Generate a response from the LLM
         """

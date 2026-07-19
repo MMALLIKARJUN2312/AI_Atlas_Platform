@@ -8,6 +8,10 @@ class ProblemRepository(BaseRepository[Problem]):
     def __init__(self, db : AsyncSession):
         super().__init__(db, Problem)
         
+    async def find_all(self) -> list[Problem]:
+        result = await self.db.scalars(select(Problem))
+        return list(result)
+        
     async def bulk_insert_dataset(self, problems : list[Problem]) -> int:
         return await self.bulk_insert_ignore_conflicts(problems, ["problem_id"])
         

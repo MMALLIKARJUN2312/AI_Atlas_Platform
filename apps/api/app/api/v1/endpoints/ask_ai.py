@@ -1,8 +1,7 @@
 from fastapi import APIRouter
 from fastapi import Depends
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
+from app.ai.services.ask_ai_service import AskAIService
 from app.ai.schemas.ask_ai_request import AskAIRequest
 from app.ai.schemas.ask_ai_response import AskAIResponse
 
@@ -20,7 +19,7 @@ router = APIRouter(
 )
 async def ask_ai(
     request : AskAIRequest,
-    service : AsyncSession = Depends(get_ask_ai_service),
+    service : AskAIService = Depends(get_ask_ai_service),
 ):
 
     return await service.ask(request.question)

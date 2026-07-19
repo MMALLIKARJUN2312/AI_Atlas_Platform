@@ -18,8 +18,8 @@ class AskAIService:
         self.llm_service = llm_service
         self.citation_service = citation_service
         
-    def ask(self, question : str) -> AskAIResponse:
-        retrieval = self.retrieval_pipeline.retrieve(question)
+    async def ask(self, question : str) -> AskAIResponse:
+        retrieval = await self.retrieval_pipeline.retrieve(question)
         prompt = self.prompt_builder.build(query=question, context=retrieval.context)
         request = LLMRequest(system_prompt=prompt.system_prompt, user_prompt=prompt.user_prompt)
         llm_response = self.llm_service.generate(request)

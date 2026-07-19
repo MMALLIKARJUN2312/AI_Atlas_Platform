@@ -14,10 +14,20 @@ class SemanticRetriever:
         self.embedding_service = embedding_service
         self.vector_store = vector_store
         
-    def retrieve(self, query : str, top_k : int | None = None) -> list[RetrievalResult]:
+    async def retrieve(self, query : str, top_k : int | None = None) -> list[RetrievalResult]:
         top_k = top_k or RetrievalConfig.DEFAULT_TOP_K
         query_embedding = self.embedding_service.embed_query(query)
-        rows = self.vector_store.similarity_search(embedding=query_embedding, top_k=top_k)
+        rows = await self.vector_store.similarity_search(embedding=query_embedding, top_k=top_k)
+        
+        print("=" * 80)
+        print("Retrieved rows:", len(rows))
+
+        for record, score in rows:
+            print(record.chunk_id)
+            print(record.document_id)
+            print(score)
+            print(record.content[:200])
+            print("-" * 40)
         
         results : list[RetrievalResult] = []
         

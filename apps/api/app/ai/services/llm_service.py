@@ -17,7 +17,7 @@ class LLMService:
 
     def generate(self, request : LLMRequest) -> LLMResponse:
 
-        response = self.llm.generate(system_prompt=request.system_prompt, user_prompt=request.user_prompt,)
+        response = self.llm.generate(request=request)
 
         self.validator.validate(response)
 

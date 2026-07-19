@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from sqlalchemy import select, delete
-from sqlalchemy.orm import Session 
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.models.embedding import Embedding
 from app.rag.schemas.embedded_chunk import EmbeddedChunk
@@ -12,14 +12,14 @@ class PGVectorStore:
     Responsible only for persistence and vector search
     """
     
-    def __init__(self, db : Session):
+    def __init__(self, db : AsyncSession):
         self.db = db
         
-    def insert(self, chunk : EmbeddedChunk) -> Embedding:
+    async def insert(self, chunk : EmbeddedChunk) -> Embedding:
         record = Embedding(
             document_id=chunk.chunk.document_id,
+            document_type=chunk.chunk.document_type.value,
             chunk_id=chunk.chunk.chunk_id,
-            document_type=chunk.chunk.metadata.get("document_type", ""),
             chunk_index=chunk.chunk.chunk_index,
             content=chunk.chunk.text,
             chunk_metadata=chunk.chunk.metadata,
@@ -29,17 +29,17 @@ class PGVectorStore:
         )
         
         self.db.add(record)
-        self.db.commit()                                                                                    
-        self.db.refresh(record)
+        await self.db.commit()                                                                                    
+        await self.db.refresh(record)
         
         return record
 
-    def bulk_insert(self, chunks : list[EmbeddedChunk]) -> None:
+    async def bulk_insert(self, chunks : list[EmbeddedChunk]) -> None:
         records = [
             Embedding(
                 document_id=chunk.chunk.document_id,
+                document_type=chunk.chunk.document_type.value,
                 chunk_id=chunk.chunk.chunk_id,
-                document_type=chunk.chunk.metadata.get("document_type", ""),
                 chunk_index=chunk.chunk.chunk_index,
                 content=chunk.chunk.text,
                 chunk_metadata=chunk.chunk.metadata,
@@ -51,26 +51,30 @@ class PGVectorStore:
         ]
         
         self.db.add_all(records)
-        self.db.commit()
+        await self.db.commit()
             
-    def get_document_chunks(self, document_id : str) -> list[Embedding]:
-        return list(self.db.scalars(select(Embedding).where(Embedding.document_id == document_id).order_by(Embedding.chunk_index)))
+    async def get_document_chunks(self, document_id : str) -> list[Embedding]:
+        result = await self.db.scalars(select(Embedding).where(Embedding.document_id == document_id).order_by(Embedding.chunk_index))
+        
+        return list(result)    
     
-    def similarity_search(self, embedding : list[float], top_k : int = 10) -> list[tuple[Embedding, float]]:
+    async def similarity_search(self, embedding : list[float], top_k : int = 10) -> list[tuple[Embedding, float]]:
         similarity = 1 - Embedding.embedding.cosine_distance(embedding)
         statement = (select(Embedding, similarity.label("score")).order_by(Embedding.embedding.cosine_distance(embedding)).limit(top_k))
         
-        return list(self.db.execute(statement).all())
+        result = await self.db.execute(statement)
+        
+        return result.all()
     
-    def delete_document(self, document_id : str) -> None:
-        self.db.execute(delete(Embedding).where(Embedding.document_id == document_id))
+    async def delete_document(self, document_id : str) -> None:
+        await self.db.execute(delete(Embedding).where(Embedding.document_id == document_id))
         
-        self.db.commit()
+        await self.db.commit()
         
-    def reindex_document(self, chunks : list[EmbeddedChunk]) -> None:
+    async def reindex_document(self, chunks : list[EmbeddedChunk]) -> None:
         if not chunks:
             return
         
         document_id = chunks[0].chunk.document_id
-        self.delete_document(document_id)
-        self.bulk_insert(chunks)
+        await self.delete_document(document_id)
+        await self.bulk_insert(chunks)

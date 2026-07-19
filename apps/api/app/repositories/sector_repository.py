@@ -7,6 +7,10 @@ from app.repositories.base_repository import BaseRepository
 class SectorRepository(BaseRepository[Sector]):
     def __init__(self, db : AsyncSession):
         super().__init__(db, Sector)
+        
+    async def find_all(self) -> list[Sector]:
+        result = await self.db.scalars(select(Sector))
+        return list(result)
      
     async def bulk_insert_dataset(self, sectors : list[Sector]) -> int:
         return await self.bulk_insert_ignore_conflicts(sectors, ["segment_name"])    

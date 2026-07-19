@@ -9,7 +9,7 @@ from app.ai.schemas.citation import Citation
 
 class FakeAskAIService:
 
-    def ask(
+    async def ask(
         self,
         question: str,
     ) -> AskAIResponse:
@@ -24,7 +24,6 @@ class FakeAskAIService:
                 )
             ],
         )
-
 
 app.dependency_overrides[get_ask_ai_service] = (
     lambda: FakeAskAIService()
