@@ -6,8 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.admin.schemas import CandidateResponse, CompanyWrite, DiscoveryRequest
 from app.admin.service import AdminService
 from app.api.deps import get_database
-from app.api.deps_ai import get_indexing_service, get_llm_service, get_retrieval_pipeline
-from app.rag.retrievers.retrieval_pipeline import RetrievalPipeline
+from app.api.deps_ai import get_indexing_service, get_llm_service
 from app.rag.vector_store.indexing_service import IndexingService
 from app.ai.services.llm_service import LLMService
 
@@ -15,8 +14,8 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
 Database = Annotated[AsyncSession, Depends(get_database)]
 
 
-def get_admin_service(db: Database, retrieval: RetrievalPipeline = Depends(get_retrieval_pipeline), llm: LLMService = Depends(get_llm_service), indexing: IndexingService = Depends(get_indexing_service)) -> AdminService:
-    return AdminService(db, retrieval, llm, indexing)
+def get_admin_service(db: Database, llm: LLMService = Depends(get_llm_service), indexing: IndexingService = Depends(get_indexing_service)) -> AdminService:
+    return AdminService(db, llm, indexing)
 
 
 Service = Annotated[AdminService, Depends(get_admin_service)]

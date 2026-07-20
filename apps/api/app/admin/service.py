@@ -1,57 +1,78 @@
 from __future__ import annotations
 
+import json
+
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.admin.schemas import CompanyWrite, DiscoveryRequest
+from app.ai.schemas.grounded_llm_response import GroundedLLMResponse
+from app.ai.schemas.llm_request import LLMRequest
 from app.ai.services.llm_service import LLMService
 from app.database.models.company import Company
 from app.database.models.company_candidate import CompanyCandidate
 from app.rag.builders.company_builder import CompanyDocumentBuilder
-from app.rag.retrievers.retrieval_pipeline import RetrievalPipeline
 from app.rag.vector_store.indexing_service import IndexingService
+
+EXTRACTION_SYSTEM_PROMPT = (
+    "You extract structured company data strictly from provided research notes. "
+    "Never invent a company, field, or fact that is not explicitly present in the notes. "
+    "Respond with a JSON array only - no prose, no markdown fences."
+)
 
 
 class AdminService:
-    def __init__(self, db: AsyncSession, retrieval: RetrievalPipeline, llm: LLMService, indexing: IndexingService):
+    def __init__(self, db: AsyncSession, llm: LLMService, indexing: IndexingService):
         self.db = db
-        self.retrieval = retrieval
         self.llm = llm
         self.indexing = indexing
         self.company_builder = CompanyDocumentBuilder()
 
     async def discover(self, request: DiscoveryRequest) -> list[CompanyCandidate]:
-        """Build reviewable candidates only from RAG-backed company records and evidence."""
-        retrieved = await self.retrieval.retrieve(f"{request.sector} {request.country}")
+        """
+        Find real candidate companies via LLM-driven web search, then extract
+        structured fields strictly from the grounded search results. A candidate
+        is only ever stored if its name appears in the grounded text AND it has
+        at least one evidence item traceable to a real search-result URL - this
+        is the hallucination gate: nothing is written from the LLM's imagination.
+        """
+        try:
+            grounded = self.llm.search(self._search_query(request))
+        except Exception as exc:  # external API call - surface as a clean 502, not a 500
+            raise HTTPException(502, f"Company discovery search failed: {exc}") from exc
+
+        if not grounded.text or not grounded.chunks:
+            return []
+
         candidates: list[CompanyCandidate] = []
         seen: set[str] = set()
 
-        for result in retrieved.results:
-            metadata = result.metadata
-            name = metadata.get("vendor_name")
-            country = metadata.get("country")
-            if result.document_type != "company" or not name or not country:
+        for item in self._extract_candidates(grounded):
+            name = (item.get("name") or "").strip()
+            if not name or name.casefold() in seen:
                 continue
-            if country.casefold() != request.country.casefold() or name.casefold() in seen:
-                continue
-            if request.sector.casefold() not in result.content.casefold():
-                continue
+            if name.casefold() not in grounded.text.casefold():
+                continue  # extractor drifted beyond the grounded research - drop it
 
-            evidence_url = metadata.get("website")
-            if not evidence_url:
-                continue
-            evidence_url = evidence_url if evidence_url.startswith("http") else f"https://{evidence_url}"
+            evidence = self._evidence_for(name, grounded)
+            if not evidence:
+                continue  # no real search result ties back to this company - drop it
+
+            if await self._company_exists(name):
+                continue  # already in the database - nothing new to review
+
             seen.add(name.casefold())
+            website = self._normalize_url(item.get("website", "")) or evidence[0]["url"]
             candidate = CompanyCandidate(
                 name=name,
-                country=country,
-                category=metadata.get("ai_category", "AI company"),
-                segment_tags=metadata.get("segment_tags", ""),
-                use_cases=self._field(result.content, "Food & Beverage AI Use Cases"),
-                website=evidence_url,
-                evidence=[{"source": name, "snippet": self._field(result.content, "Deployment Evidence"), "url": evidence_url}],
-                confidence_score=round(min(result.similarity_score, 1.0), 2),
+                country=request.country,
+                category=(item.get("category") or "AI company").strip(),
+                segment_tags=(item.get("segment_tags") or "").strip(),
+                use_cases=(item.get("use_cases") or "").strip(),
+                website=website,
+                evidence=evidence,
+                confidence_score=round(min(0.5 + 0.15 * len(evidence), 0.95), 2),
                 status="pending",
             )
             self._validate_evidence(candidate.evidence)
@@ -121,10 +142,66 @@ class AdminService:
             raise HTTPException(404, "Candidate not found")
         return candidate
 
+    async def _company_exists(self, name: str) -> bool:
+        return await self.db.scalar(select(Company.id).where(Company.vendor_name.ilike(name))) is not None
+
     @staticmethod
-    def _field(content: str, label: str) -> str:
-        marker = f"{label}:\n"
-        return content.split(marker, 1)[1].split("\n\n", 1)[0] if marker in content else ""
+    def _search_query(request: DiscoveryRequest) -> str:
+        return (
+            f"Find real, currently operating companies that sell or deploy AI solutions "
+            f"for the '{request.sector}' sector in {request.country}. For each company, "
+            f"state its name, country, primary AI category or use case, and website if known."
+        )
+
+    def _extract_candidates(self, grounded: GroundedLLMResponse) -> list[dict]:
+        request = LLMRequest(
+            system_prompt=EXTRACTION_SYSTEM_PROMPT,
+            user_prompt=(
+                "Research notes:\n"
+                f"{grounded.text}\n\n"
+                "Extract every distinct company mentioned as a JSON array of objects with keys: "
+                'name, category, segment_tags, use_cases, website. Use "" for any field not present '
+                "in the notes. Omit companies not clearly named in the notes."
+            ),
+            temperature=0.0,
+            max_output_tokens=1500,
+        )
+        response = self.llm.generate(request)
+        return self._parse_json_array(response.text)
+
+    @staticmethod
+    def _parse_json_array(text: str) -> list[dict]:
+        cleaned = text.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+        try:
+            parsed = json.loads(cleaned)
+        except (json.JSONDecodeError, ValueError):
+            return []
+        return [item for item in parsed if isinstance(item, dict)] if isinstance(parsed, list) else []
+
+    @staticmethod
+    def _evidence_for(name: str, grounded: GroundedLLMResponse) -> list[dict]:
+        needle = name.casefold()
+        evidence: list[dict] = []
+        seen_urls: set[str] = set()
+        for support in grounded.supports:
+            if needle not in support.text.casefold():
+                continue
+            for index in support.chunk_indices:
+                if index < 0 or index >= len(grounded.chunks):
+                    continue
+                chunk = grounded.chunks[index]
+                if not chunk.uri or chunk.uri in seen_urls:
+                    continue
+                seen_urls.add(chunk.uri)
+                evidence.append({"source": chunk.title or chunk.uri, "snippet": support.text.strip(), "url": chunk.uri})
+        return evidence
+
+    @staticmethod
+    def _normalize_url(value: str) -> str:
+        value = (value or "").strip()
+        if not value:
+            return ""
+        return value if value.startswith("http") else f"https://{value}"
 
     @staticmethod
     def _validate_evidence(evidence: list[dict]) -> None:
