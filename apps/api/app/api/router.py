@@ -6,6 +6,7 @@ from app.api.routes.companies import router as company_router
 from app.api.routes.sectors import router as sector_router
 from app.api.routes.problems import router as problem_router
 from app.api.routes.news import router as news_router
+from app.api.routes.admin import router as admin_router
 
 api_router = APIRouter()
 
@@ -15,3 +16,4 @@ api_router.include_router(company_router, prefix="/companies", tags=["Companies"
 api_router.include_router(sector_router)
 api_router.include_router(problem_router)
 api_router.include_router(news_router)
+api_router.include_router(admin_router)

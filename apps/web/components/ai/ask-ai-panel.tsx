@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { type FormEvent, useState } from "react";
 import { ArrowUp, Bot, LoaderCircle } from "lucide-react";
 
 import { Button, Card } from "@/components/ui";

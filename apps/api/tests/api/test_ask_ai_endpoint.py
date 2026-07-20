@@ -1,4 +1,5 @@
-from fastapi.testclient import TestClient
+import httpx
+import pytest
 
 from app.main import app
 from app.api.deps_ai import get_ask_ai_service
@@ -31,17 +32,16 @@ app.dependency_overrides[get_ask_ai_service] = (
     lambda: FakeAskAIService()
 )
 
-client = TestClient(app)
-
-
-def test_ask_ai_success():
-
-    response = client.post(
-        "/api/v1/ai/ask",
-        json={
-            "question": "What is OpenAI?"
-        },
-    )
+@pytest.mark.asyncio
+async def test_ask_ai_success():
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.post(
+            "/api/v1/ai/ask",
+            json={
+                "question": "What is OpenAI?"
+            },
+        )
 
     assert response.status_code == 200
 
