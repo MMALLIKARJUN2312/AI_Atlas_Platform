@@ -105,6 +105,6 @@ Copy `.env.example` and set:
 
 Deploy the web app to Vercel and the API to Railway, Render, or AWS. Use managed PostgreSQL with the `vector` extension and managed Redis. Run migrations and dataset ingestion once per environment before serving traffic. Configure all production environment variables in the relevant provider.
 
-The checked-in Compose file currently runs only PostgreSQL and Redis. API/web container images, a worker process, and a scheduler process still need Dockerfiles and production entrypoints before `docker compose up --build` can start the whole application.
+For Render, deploy the root `Dockerfile` as a Docker web service. Add the secret variables marked `sync: false` in `render.yaml`, run the initial dataset ingestion as a one-off job, and set the Vercel `NEXT_PUBLIC_API_URL` to the deployed Render API URL plus `/api/v1`. The checked-in Compose file currently runs only PostgreSQL and Redis; worker and scheduler containers still need dedicated production entrypoints.
 
 See [docs/architecture.md](docs/architecture.md) for system design, trade-offs, and scaling notes.

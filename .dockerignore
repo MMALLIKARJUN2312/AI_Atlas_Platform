@@ -1,0 +1,11 @@
+.git
+.turbo
+node_modules
+apps/web/node_modules
+apps/web/.next
+apps/api/.venv
+apps/api/.pytest_cache
+__pycache__
+*.pyc
+.env
+apps/web/.env.local
