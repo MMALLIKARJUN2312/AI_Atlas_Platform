@@ -1,17 +1,5 @@
 from pydantic import BaseModel, ConfigDict
 
-class CompanySummaryResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: int
-    vendor_name: str
-    country: str
-    ai_category: str
-    company_type: str
-    maturity: str
-    website: str
-
-
 class CompanyDetailResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -29,3 +17,7 @@ class CompanyDetailResponse(BaseModel):
     maturity: str
     top_deployment_evidence: str
     website: str
+
+
+class CompanySummaryResponse(CompanyDetailResponse):
+    """Directory responses expose the fields required for client-side discovery."""

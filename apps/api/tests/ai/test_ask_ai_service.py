@@ -53,3 +53,5 @@ async def test_ask_ai_service():
     assert isinstance(response, AskAIResponse)
     assert "OpenAI" in response.answer
     assert len(response.citations) == 1
+    assert response.citations[0].document_id == "company:1"
+    assert response.citations[0].chunk_id == "chunk-1"

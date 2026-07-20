@@ -2,13 +2,9 @@ import { HTMLAttributes } from "react";
 
 import { cn } from "@/lib/utils";
 
-export interface DividerProps
-  extends HTMLAttributes<HTMLHRElement> {}
+export type DividerProps = HTMLAttributes<HTMLHRElement>;
 
-export function Divider({
-  className,
-  ...props
-}: DividerProps) {
+export function Divider({ className, ...props }: DividerProps) {
   return (
     <hr
       className={cn(
@@ -19,7 +15,7 @@ export function Divider({
         "from-transparent",
         "via-white/10",
         "to-transparent",
-        className
+        className,
       )}
       {...props}
     />

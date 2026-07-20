@@ -24,7 +24,7 @@ class CitationService:
             citations.append(
                 Citation(
                     document_id=result.document_id, 
-                    chunk_id=result.document_id, 
+                    chunk_id=result.chunk_id,
                     document_type=result.document_type,
                 )
             )
