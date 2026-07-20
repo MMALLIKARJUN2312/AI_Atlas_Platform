@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from app.ai.schemas.citation import Citation
+from app.ai.schemas.citation import Source
 
 class AskAIResponse(BaseModel):
     """
@@ -8,7 +8,5 @@ class AskAIResponse(BaseModel):
     """
     
     answer : str 
-    citations : list[Citation]
-    
-    
+    sources: list[Source]
     

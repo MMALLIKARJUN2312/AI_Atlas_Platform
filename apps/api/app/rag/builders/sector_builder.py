@@ -24,6 +24,7 @@ class SectorDocumentBuilder(BaseDocumentBuilder[Sector]):
         )
 
         metadata = {
+            "title": sector.segment_name,
             "segment_name" : sector.segment_name,
             "segment_number" : sector.segment_number,
             "ai_adoption" : sector.ai_adoption

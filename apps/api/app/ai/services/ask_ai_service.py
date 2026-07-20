@@ -23,8 +23,8 @@ class AskAIService:
 
         if not retrieval.results:
             return AskAIResponse(
-                answer="I couldn't find enough information in the knowledge base to answer that question.",
-                citations=[],
+                answer="I don't have enough information to answer that question.",
+                sources=[],
             )
 
         prompt = self.prompt_builder.build(query=question, context=retrieval.context,)
@@ -32,4 +32,4 @@ class AskAIService:
         llm_response = self.llm_service.generate(request)
         citations = self.citation_service.build(retrieval.results)
 
-        return AskAIResponse(answer=llm_response.text, citations=citations)
+        return AskAIResponse(answer=llm_response.text, sources=citations)

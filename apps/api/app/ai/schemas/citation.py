@@ -1,10 +1,12 @@
 from pydantic import BaseModel
 
-class Citation(BaseModel):
+class Source(BaseModel):
     """
-    Citation received for an AI answer
+    A grounded source used to answer an AI question.
     """
-    
-    document_id : str 
-    chunk_id : str
-    document_type : str 
+
+    title: str
+    source_type: str
+    company_id: int | None = None
+    url: str | None = None
+    chunk_id: str

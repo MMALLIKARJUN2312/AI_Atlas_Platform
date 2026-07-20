@@ -4,7 +4,7 @@ from app.main import app
 from app.api.deps_ai import get_ask_ai_service
 
 from app.ai.schemas.ask_ai_response import AskAIResponse
-from app.ai.schemas.citation import Citation
+from app.ai.schemas.citation import Source
 
 
 class FakeAskAIService:
@@ -16,11 +16,13 @@ class FakeAskAIService:
 
         return AskAIResponse(
             answer="OpenAI develops GPT models.",
-            citations=[
-                Citation(
-                    document_id="company-1",
+            sources=[
+                Source(
+                    title="Krones",
+                    source_type="company",
+                    company_id=1,
+                    url="https://krones.com",
                     chunk_id="chunk-1",
-                    document_type="company",
                 )
             ],
         )
@@ -47,4 +49,12 @@ def test_ask_ai_success():
 
     assert body["answer"] == "OpenAI develops GPT models."
 
-    assert len(body["citations"]) == 1
+    assert body["sources"] == [
+        {
+            "title": "Krones",
+            "source_type": "company",
+            "company_id": 1,
+            "url": "https://krones.com",
+            "chunk_id": "chunk-1",
+        }
+    ]

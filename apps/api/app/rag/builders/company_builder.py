@@ -28,11 +28,13 @@ class CompanyDocumentBuilder(BaseDocumentBuilder[Company]):
         )
 
         metadata = {
+            "title": company.vendor_name,
+            "company_id": company.id,
             "vendor_name" : company.vendor_name,
             "country" : company.country,
             "company_type" : company.company_type,
             "segment_tags" : company.segment_tags,
-            "website" : company.website
+            "website" : company.website,
         }
         
         return KnowledgeDocument(

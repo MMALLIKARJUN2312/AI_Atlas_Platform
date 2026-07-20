@@ -7,7 +7,7 @@ Rules:
 1. Answer ONLY using the provided context.
 2. Never invent facts.
 3. If the answer cannot be found in the context, explicitly say:
-   "I couldn't find enough information in the knowledge base to answer that."
+   "I don't have enough information to answer that question."
 
 4. Prefer concise, structured responses.
 

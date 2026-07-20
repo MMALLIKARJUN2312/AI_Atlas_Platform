@@ -25,6 +25,7 @@ class MappingDocumentBuilder(BaseDocumentBuilder[ProblemCompanyMapping]):
         )
 
         metadata = {
+            "title": mapping.problem_statement,
             "segment_tags" : mapping.segment_tags,
             "vc_stage" : mapping.vc_stage,
             "payback_months" : mapping.payback_months

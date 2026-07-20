@@ -23,6 +23,7 @@ class NewsDocumentBuilder(BaseDocumentBuilder[News]):
             title=news.title,
             content=content,
             metadata={
+                "title": news.title,
                 "type": "news",
                 "company_id": news.company_id,
                 "source_url": news.source_url,

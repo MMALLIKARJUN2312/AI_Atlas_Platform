@@ -26,6 +26,7 @@ class ProblemDocumentBuilder(BaseDocumentBuilder[Problem]):
         )
 
         metadata = {
+            "title": problem.problem_statement,
             "problem_id" : problem.problem_id,
             "category" : problem.category,
             "severity" : problem.severity,

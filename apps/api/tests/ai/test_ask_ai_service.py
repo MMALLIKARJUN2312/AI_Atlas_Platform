@@ -19,15 +19,15 @@ class FakeRetriever:
                 chunk_id="chunk-1",
                 document_type="company",
                 chunk_index=0,
-                content="OpenAI develops GPT models.",
-                metadata={},
+                content="Vendor:\nKrones\n\nGerman Customers:\nGerman beverage producers",
+                metadata={"title": "Krones", "company_id": 1, "website": "krones.com"},
                 similarity_score=0.99,
             )
         ]
 
 class FakeLLM:
     def generate(self, request):
-        return LLMResponse(text="OpenAI develops GPT models.", model="fake")
+        return LLMResponse(text="Krones serves German beverage producers.", model="fake")
 
 @pytest.mark.asyncio
 async def test_ask_ai_service():
@@ -47,11 +47,33 @@ async def test_ask_ai_service():
     )
 
     response = await service.ask(
-        "What does OpenAI do?"
+        "Who are Krones' German customers?"
     )
 
     assert isinstance(response, AskAIResponse)
-    assert "OpenAI" in response.answer
-    assert len(response.citations) == 1
-    assert response.citations[0].document_id == "company:1"
-    assert response.citations[0].chunk_id == "chunk-1"
+    assert "Krones" in response.answer
+    assert len(response.sources) == 1
+    assert response.sources[0].title == "Krones"
+    assert response.sources[0].company_id == 1
+    assert response.sources[0].url == "https://krones.com"
+    assert response.sources[0].chunk_id == "chunk-1"
+
+
+class EmptyRetriever:
+    async def retrieve(self, query):
+        return []
+
+
+@pytest.mark.asyncio
+async def test_ask_ai_rejects_unknown_questions_without_calling_the_llm():
+    service = AskAIService(
+        retrieval_pipeline=RetrievalPipeline(retriever=EmptyRetriever(), context_builder=ContextBuilder()),
+        prompt_builder=PromptBuilder(),
+        llm_service=LLMService(llm=FakeLLM(), validator=ResponseValidator()),
+        citation_service=CitationService(),
+    )
+
+    response = await service.ask("What is the weather in Berlin?")
+
+    assert response.answer == "I don't have enough information to answer that question."
+    assert response.sources == []
