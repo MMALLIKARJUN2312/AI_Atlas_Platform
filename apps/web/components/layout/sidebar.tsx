@@ -24,16 +24,6 @@ const navigation = [
     icon: Building2,
   },
   {
-    label: "Sectors",
-    href: "/sectors",
-    icon: Layers3,
-  },
-  {
-    label: "Problems",
-    href: "/problems",
-    icon: Lightbulb,
-  },
-  {
     label: "Ask AI",
     href: "/ask-ai",
     icon: Brain,
