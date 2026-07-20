@@ -52,6 +52,9 @@ pip install -r requirements.txt
 alembic upgrade head
 python -m app.ingestion.load_dataset
 uvicorn app.main:app --reload
+# On Windows, use `python -m app.main` instead of the uvicorn CLI above —
+# psycopg's async driver requires a SelectorEventLoop, which can only be
+# applied before uvicorn creates its own event loop.
 ```
 
 In another terminal:
