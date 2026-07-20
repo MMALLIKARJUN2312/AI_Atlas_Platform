@@ -1,27 +1,40 @@
-import { HTMLAttributes } from "react";
-
 import { cn } from "@/lib/utils";
-import { GlassPanel } from "./glass-panel";
 
-interface CardProps extends HTMLAttributes<HTMLDivElement> {}
+interface CardProps {
+  children: React.ReactNode;
+  className?: string;
+}
 
 export function Card({
-  className,
   children,
-  ...props
+  className,
 }: CardProps) {
   return (
-    <GlassPanel
+    <div
       className={cn(
-        "group p-6",
-        "hover:-translate-y-1",
-        "hover:border-cyan-400/20",
-        "hover:shadow-[0_30px_80px_rgba(34,211,238,0.10)]",
+        `
+        glass
+
+        rounded-xl
+
+        border
+
+        border-white/5
+
+        bg-white/[0.03]
+
+        p-6
+
+        transition-all
+
+        duration-300
+
+        hover:border-white/10
+        `,
         className
       )}
-      {...props}
     >
       {children}
-    </GlassPanel>
+    </div>
   );
 }

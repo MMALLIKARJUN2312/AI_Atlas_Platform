@@ -1,25 +1,29 @@
 import type { Metadata } from "next";
 import { ReactNode } from "react";
 
+import "@/styles/globals.css";
+
 import { QueryProvider } from "@/providers/query-provider";
 import { ToastProvider } from "@/providers/toast-provider";
+
+import { AppShell } from "@/components/layout";
 
 export const metadata: Metadata = {
   title: "AI Atlas",
   description: "AI Atlas Platform",
 };
 
-type Props = {
+export default function RootLayout({
+  children,
+}: {
   children: ReactNode;
-};
-
-export default function RootLayout({ children }: Props) {
+}) {
   return (
     <html lang="en">
       <body>
         <QueryProvider>
           <ToastProvider />
-          {children}
+          <AppShell>{children}</AppShell>
         </QueryProvider>
       </body>
     </html>

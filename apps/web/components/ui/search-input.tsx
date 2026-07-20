@@ -1,37 +1,21 @@
-import { forwardRef } from "react";
 import { Search } from "lucide-react";
 
-import { cn } from "@/lib/utils";
-import { Input, InputProps } from "./input";
+import { Input } from "./input";
 
-export interface SearchInputProps extends InputProps {
-  containerClassName?: string;
-}
-
-export const SearchInput = forwardRef<
-  HTMLInputElement,
-  SearchInputProps
->(({ className, containerClassName, ...props }, ref) => {
+export function SearchInput(
+  props: React.InputHTMLAttributes<HTMLInputElement>
+) {
   return (
-    <div
-      className={cn(
-        "relative flex items-center",
-        containerClassName
-      )}
-    >
+    <div className="relative">
       <Search
-        className="pointer-events-none absolute left-4 h-5 w-5 text-zinc-500"
-        aria-hidden="true"
+        size={20}
+        className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500"
       />
 
       <Input
-        ref={ref}
-        type="search"
-        className={cn("pl-12", className)}
+        className="pl-14"
         {...props}
       />
     </div>
   );
-});
-
-SearchInput.displayName = "SearchInput";
+}

@@ -1,30 +1,30 @@
-import { HTMLAttributes } from "react";
-
 import { cn } from "@/lib/utils";
 
-interface GlassPanelProps extends HTMLAttributes<HTMLDivElement> {}
+interface GlassPanelProps {
+  children: React.ReactNode;
+  className?: string;
+}
 
 export function GlassPanel({
-  className,
   children,
-  ...props
+  className,
 }: GlassPanelProps) {
   return (
-    <div
+    <section
       className={cn(
-        "relative overflow-hidden rounded-3xl",
-        "border border-white/10",
-        "bg-white/[0.04]",
-        "backdrop-blur-2xl",
-        "shadow-[0_24px_60px_rgba(0,0,0,0.45)]",
-        "transition-all duration-300",
+        `
+        glass
+        rounded-[36px]
+        border
+        border-white/5
+        bg-white/[0.02]
+        p-8
+        backdrop-blur-3xl
+        `,
         className
       )}
-      {...props}
     >
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-cyan-400/5" />
-
-      <div className="relative">{children}</div>
-    </div>
+      {children}
+    </section>
   );
 }

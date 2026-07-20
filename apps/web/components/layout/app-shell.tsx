@@ -1,47 +1,31 @@
 "use client";
 
-import { PropsWithChildren, useState } from "react";
+import { ReactNode } from "react";
 
 import { AppBackground } from "./app-background";
-import { MobileSidebar } from "./mobile-sidebar";
-import { PageContainer } from "./page-container";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
 
+interface Props {
+  children: ReactNode;
+}
+
 export function AppShell({
   children,
-}: PropsWithChildren) {
-  const [mobileMenuOpen, setMobileMenuOpen] =
-    useState(false);
-
+}: Props) {
   return (
-    <>
-      <AppBackground />
+    <AppBackground>
+      <div className="flex min-h-screen">
+        <Sidebar />
 
-      <MobileSidebar
-        open={mobileMenuOpen}
-        onClose={() =>
-          setMobileMenuOpen(false)
-        }
-      />
+        <div className="flex min-h-screen min-w-0 flex-1 flex-col">
+          <Topbar />
 
-      <div className="relative z-10 flex min-h-screen">
-        <aside className="hidden shrink-0 p-6 lg:block">
-          <Sidebar />
-        </aside>
-
-        <div className="min-w-0 flex-1">
-          <PageContainer>
-            <Topbar
-              onMenuClick={() =>
-                setMobileMenuOpen(true)
-              }
-            />
-
+          <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
             {children}
-          </PageContainer>
+          </main>
         </div>
       </div>
-    </>
+    </AppBackground>
   );
 }

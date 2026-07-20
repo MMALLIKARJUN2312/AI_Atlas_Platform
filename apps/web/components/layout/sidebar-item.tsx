@@ -27,18 +27,15 @@ export function SidebarItem({
     <Link
       href={href}
       className={cn(
-        "flex items-center gap-3 rounded-2xl px-4 py-3",
-        "transition-all duration-200",
+        "flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors",
         active
-          ? "bg-cyan-400/10 text-cyan-300"
-          : "text-zinc-400 hover:bg-white/5 hover:text-white"
+          ? "bg-blue-600 text-white"
+          : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
       )}
     >
       <Icon size={18} />
 
-      <span className="text-sm font-medium">
-        {label}
-      </span>
+      <span>{label}</span>
     </Link>
   );
 }

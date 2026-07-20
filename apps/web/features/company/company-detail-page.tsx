@@ -44,13 +44,13 @@ export function CompanyDetailPage({ params }: CompanyDetailPageProps) {
   }
 
   return (
-    <div className="space-y-10">
+    <div className="mx-auto max-w-7xl space-y-8 sm:space-y-10">
       <CompanyHeader company={company} />
 
       <CompanyTags tags={company.segment_tags} />
 
       <div
-        className="flex gap-2 border-b border-zinc-800"
+        className="flex gap-1 overflow-x-auto border-b border-zinc-800"
         role="tablist"
         aria-label="Company profile sections"
       >
@@ -79,7 +79,7 @@ export function CompanyDetailPage({ params }: CompanyDetailPageProps) {
 
       <div id={`${activeTab}-panel`} role="tabpanel" aria-labelledby={`${activeTab}-tab`}>
         {activeTab === "overview" ? (
-          <div className="grid gap-8 lg:grid-cols-3">
+          <div className="grid gap-6 lg:grid-cols-3 lg:gap-8">
             <div className="lg:col-span-2">
               <CompanyOverview company={company} />
             </div>
@@ -107,7 +107,7 @@ export function CompanyDetailPage({ params }: CompanyDetailPageProps) {
             ) : (
               <div className="space-y-6">
                 {problems.map((problem) => (
-                  <div key={problem.problem_id} className="rounded-xl border border-zinc-800 p-6">
+                  <div key={problem.problem_id} className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 sm:p-6">
                     <h3 className="text-lg font-semibold text-white">
                       {problem.problem_statement}
                     </h3>

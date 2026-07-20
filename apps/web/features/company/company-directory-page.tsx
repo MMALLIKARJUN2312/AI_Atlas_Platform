@@ -93,23 +93,20 @@ export function CompanyDirectoryPage() {
   }
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-8">
       {/* Hero */}
 
-      <section className="grid grid-cols-12 gap-8">
-        <div className="col-span-8">
-          <h1 className="text-6xl font-black leading-tight">
-            Discover{" "}
-            <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-violet-500 bg-clip-text text-transparent">
-              AI Companies
-            </span>
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+        <div>
+          <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+            AI Companies
           </h1>
 
-          <p className="mt-5 max-w-3xl text-xl text-slate-400">
+          <p className="mt-3 max-w-2xl text-base text-zinc-400 sm:text-lg">
             Explore Germany&apos;s Food & Beverage AI ecosystem.
           </p>
 
-          <div className="mt-10">
+          <div className="mt-7 max-w-2xl">
             <CompanySearch
               value={search}
               total={companies.length}
@@ -121,7 +118,7 @@ export function CompanyDirectoryPage() {
           </div>
         </div>
 
-        <div className="col-span-4 grid grid-cols-2 gap-5">
+        <div className="grid grid-cols-2 gap-3">
           <StatCard icon={Building2} label="Companies" value={companies.length} />
 
           <StatCard icon={Boxes} label="Sectors" value={sectors.length} />
@@ -134,7 +131,7 @@ export function CompanyDirectoryPage() {
 
       {/* Filters */}
 
-      <section className="space-y-6">
+      <section className="space-y-5">
         {sectorsError ? (
           <p className="text-sm text-amber-300">Sector filters are temporarily unavailable.</p>
         ) : (

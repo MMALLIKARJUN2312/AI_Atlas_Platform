@@ -12,18 +12,14 @@ export function PageContainer({
   className,
 }: PageContainerProps) {
   return (
-    <main
+    <div
       className={cn(
-        "relative z-10",
-        "mx-auto",
-        "w-full",
-        "max-w-7xl",
-        "px-6",
-        "py-8",
+        "mx-auto w-full max-w-7xl",
+        "space-y-8 py-1 sm:space-y-10",
         className
       )}
     >
       {children}
-    </main>
+    </div>
   );
 }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Boxes } from "lucide-react";
+import { BrainCircuit } from "lucide-react";
 
 export function Logo() {
   return (
@@ -7,17 +7,17 @@ export function Logo() {
       href="/"
       className="flex items-center gap-3"
     >
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 text-cyan-300">
-        <Boxes size={22} />
+      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
+        <BrainCircuit size={20} />
       </div>
 
-      <div>
-        <h1 className="text-lg font-bold tracking-tight text-white">
+      <div className="min-w-0">
+        <h1 className="text-lg font-semibold tracking-tight text-white">
           AI Atlas
         </h1>
 
-        <p className="text-xs text-zinc-500">
-          German Food Intelligence
+        <p className="text-xs text-zinc-400">
+          Intelligence Platform
         </p>
       </div>
     </Link>

@@ -1,0 +1,9 @@
+:root {
+  --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 30px 60px -15px rgba(0, 0, 0, 0.9);
+  
+  /* Cyber glows matching the ambient light maps */
+  --shadow-glow-cyan: 0 0 50px -10px rgba(6, 182, 212, 0.25);
+  --shadow-glow-purple: 0 0 50px -10px rgba(168, 85, 247, 0.2);
+}
