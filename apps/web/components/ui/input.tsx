@@ -26,6 +26,8 @@ export const Input = React.forwardRef<
         focus:ring-4
         focus:ring-cyan-400/20
         outline-none
+        aria-[invalid=true]:border-red-400/60
+        aria-[invalid=true]:focus:ring-red-400/20
         `,
         props.className
       )}

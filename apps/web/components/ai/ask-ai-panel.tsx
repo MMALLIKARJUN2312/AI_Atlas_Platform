@@ -37,20 +37,27 @@ export function AskAIPanel() {
   }
 
   return (
-    <Card className="mx-auto flex min-h-[620px] max-w-5xl flex-col p-0 hover:translate-y-0">
-      <div className="border-b border-white/10 px-6 py-5 sm:px-8">
-        <div className="flex items-center gap-3">
-          <div className="rounded-xl bg-cyan-400/15 p-2 text-cyan-300"><Bot className="h-5 w-5" /></div>
-          <div>
-            <h1 className="text-xl font-semibold text-white">Ask AI Atlas</h1>
-            <p className="text-sm text-zinc-400">Grounded answers across German food and beverage AI intelligence.</p>
-          </div>
+    <Card className="mx-auto flex min-h-[560px] max-w-3xl flex-col p-0 hover:translate-y-0">
+      <div className="relative border-b border-white/10 px-6 py-6 text-center sm:px-8">
+        <div className="flex flex-col items-center gap-2">
+          <div className="rounded-xl bg-cyan-400/15 p-2.5 text-cyan-300"><Bot className="h-5 w-5" /></div>
+          <h1 className="text-xl font-semibold text-white">Ask AI Atlas</h1>
+          <p className="max-w-md text-sm text-zinc-400">Grounded answers across German food and beverage AI intelligence.</p>
         </div>
+        {messages.length > 0 ? (
+          <Button
+            variant="secondary"
+            onClick={() => setMessages([])}
+            className="absolute right-6 top-6 sm:right-8"
+          >
+            New chat
+          </Button>
+        ) : null}
       </div>
 
       <div className="flex-1 space-y-5 overflow-y-auto px-6 py-8 sm:px-8" aria-live="polite">
         {messages.length === 0 ? (
-          <div className="mx-auto max-w-xl pt-20 text-center">
+          <div className="mx-auto max-w-md pt-16 text-center">
             <Bot className="mx-auto h-10 w-10 text-cyan-300" />
             <h2 className="mt-5 text-lg font-semibold text-white">What would you like to explore?</h2>
             <p className="mt-2 text-sm text-zinc-400">Ask about companies, the problems they solve, market sectors, or recent news.</p>

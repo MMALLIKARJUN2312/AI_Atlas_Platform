@@ -1,6 +1,7 @@
 import { Building2, ExternalLink, Globe } from "lucide-react";
 
 import { Badge, Button, Card } from "@/components/ui";
+import { externalUrl } from "@/lib/utils";
 import { Company } from "@/types/company";
 
 interface CompanyHeaderProps {
@@ -53,16 +54,18 @@ export function CompanyHeader({
           </div>
         </div>
 
-        <Button asChild>
-          <a
-            href={company.website}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Visit Website
-            <ExternalLink size={16} />
-          </a>
-        </Button>
+        {company.website ? (
+          <Button asChild>
+            <a
+              href={externalUrl(company.website)}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Visit Website
+              <ExternalLink size={16} />
+            </a>
+          </Button>
+        ) : null}
       </div>
     </Card>
   );

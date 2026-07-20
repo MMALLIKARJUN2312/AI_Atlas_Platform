@@ -27,7 +27,18 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(title=settings.APP_NAME, version="1.0.0", lifespan=lifespan)
 
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+# The frontend authenticates with a Bearer token (Authorization header), not
+# cookies, so credentialed CORS is never actually needed - this also keeps a
+# wildcard origin spec-valid for local dev while production sets
+# ALLOWED_ORIGINS to the exact deployed frontend origin(s).
+allowed_origins = [origin.strip() for origin in settings.ALLOWED_ORIGINS.split(",") if origin.strip()]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins or ["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 

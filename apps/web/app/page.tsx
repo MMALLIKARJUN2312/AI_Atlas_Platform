@@ -1,7 +1,2 @@
-export default function HomePage() {
-  return (
-    <div>
-      <h1>Dashboard</h1>
-    </div>
-  );
-}
+import { DashboardPage } from "@/features/dashboard/dashboard-page";
+export default function HomePage() { return <DashboardPage />; }

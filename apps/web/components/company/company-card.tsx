@@ -10,6 +10,7 @@ import {
 import { motion } from "framer-motion";
 
 import { Badge } from "@/components/ui";
+import { externalUrl } from "@/lib/utils";
 import { Company } from "@/types/company";
 
 interface CompanyCardProps {
@@ -49,64 +50,73 @@ export function CompanyCard({
         flex
         h-full
         flex-col
-        rounded-xl border border-white/10 bg-zinc-900/70 p-5
+        rounded-xl border border-white/10 bg-zinc-900/70 p-6
         transition-colors
         hover:border-sky-400/40
       "
     >
-      <div className="flex items-start justify-between">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-400/10">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-sky-400/10">
           <Building2
             size={22}
             className="text-sky-300"
           />
         </div>
 
-        <Badge>{company.maturity}</Badge>
+        <Badge className="shrink-0">{company.maturity}</Badge>
       </div>
 
-      <div className="mt-5">
-        <h2 className="line-clamp-2 text-lg font-semibold text-white">
-          {company.vendor_name}
-        </h2>
+      <div className="mt-5 space-y-4">
+        <div>
+          <h2 className="line-clamp-2 text-lg font-semibold leading-snug text-white">
+            {company.vendor_name}
+          </h2>
 
-        <p className="mt-2 line-clamp-2 text-sm text-zinc-400">
-          {company.ai_category}
-        </p>
-      </div>
-
-      <div className="mt-5 flex items-center gap-2 text-sm text-zinc-400">
-        <Globe size={16} />
-        {company.country}
-      </div>
-
-      <p className="mt-3 text-sm text-zinc-500">{company.company_type}</p>
-      {tags && (
-        <div className="mt-4 flex flex-wrap gap-2">
-          {tags.map((tag) => (
-            <Tag
-              key={tag}
-              label={tag}
-            />
-          ))}
+          <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-zinc-400">
+            {company.ai_category}
+          </p>
         </div>
-      )}
 
-      <div className="mt-auto pt-5">
-        <div className="flex items-center justify-between border-t border-white/10 pt-4">
-          <a
-            href={company.website}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-1 text-sm text-zinc-400 hover:text-white"
-          >
-            Website
-            <ExternalLink size={14} />
-          </a>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-zinc-400">
+          <span className="flex items-center gap-1.5">
+            <Globe size={16} />
+            {company.country}
+          </span>
+          <span className="text-zinc-500">{company.company_type}</span>
+        </div>
+
+        {tags && tags.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {tags.map((tag) => (
+              <Tag
+                key={tag}
+                label={tag}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="mt-auto pt-6">
+        <div className="flex items-center justify-between border-t border-white/10 pt-5">
+          {company.website ? (
+            <a
+              href={externalUrl(company.website)}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(event) => event.stopPropagation()}
+              className="flex items-center gap-1 text-sm text-zinc-400 hover:text-white"
+            >
+              Website
+              <ExternalLink size={14} />
+            </a>
+          ) : (
+            <span />
+          )}
 
           <Link
             href={`/companies/${company.id}`}
-            className="flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-medium text-zinc-950 hover:bg-zinc-200"
+            className="flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200"
           >
             View
             <ArrowRight size={16} />

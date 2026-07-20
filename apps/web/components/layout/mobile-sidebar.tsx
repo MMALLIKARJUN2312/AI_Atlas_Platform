@@ -47,7 +47,7 @@ export function MobileSidebar({
               </IconButton>
             </div>
 
-            <Sidebar />
+            <Sidebar forceVisible />
           </motion.div>
         </>
       )}

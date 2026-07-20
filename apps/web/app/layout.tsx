@@ -11,7 +11,7 @@ import { AppShell } from "@/components/layout";
 
 export const metadata: Metadata = {
   title: "AI Atlas",
-  description: "AI Atlas Platform",
+  description: "AI Atlas — AI intelligence platform for Germany's Food & Beverage sector: browse AI vendors, grounded Ask AI answers, and automated company news.",
 };
 
 export default function RootLayout({
@@ -20,7 +20,7 @@ export default function RootLayout({
   children: ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <body>
         <QueryProvider>
           <AuthProvider>

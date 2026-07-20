@@ -12,7 +12,7 @@ export function CompanyGrid({
     <div
       className="
         grid
-        gap-5
+        gap-6
         xl:grid-cols-2
       "
     >

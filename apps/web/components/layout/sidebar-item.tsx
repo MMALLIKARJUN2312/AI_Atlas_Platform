@@ -10,32 +10,36 @@ interface SidebarItemProps {
   href: string;
   label: string;
   icon: LucideIcon;
+  collapsed?: boolean;
 }
 
 export function SidebarItem({
   href,
   label,
   icon: Icon,
+  collapsed = false,
 }: SidebarItemProps) {
   const pathname = usePathname();
 
   const active =
-    pathname === href ||
-    pathname.startsWith(`${href}/`);
+    href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 
   return (
     <Link
       href={href}
+      title={collapsed ? label : undefined}
+      aria-current={active ? "page" : undefined}
       className={cn(
-        "flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors",
+        "flex h-12 items-center gap-3.5 rounded-lg px-3.5 text-sm font-medium transition-colors",
+        collapsed && "justify-center px-0",
         active
           ? "bg-blue-600 text-white"
           : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
       )}
     >
-      <Icon size={18} />
+      <Icon size={19} className="shrink-0" />
 
-      <span>{label}</span>
+      {!collapsed && <span className="truncate">{label}</span>}
     </Link>
   );
 }

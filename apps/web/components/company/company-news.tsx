@@ -1,5 +1,6 @@
 "use client";
 
+import toast from "react-hot-toast";
 import { ExternalLink, RefreshCw, Rss } from "lucide-react";
 
 import { Button, EmptyState, LoadingSkeleton } from "@/components/ui";
@@ -12,7 +13,17 @@ interface CompanyNewsProps {
 export function CompanyNews({ companyId }: CompanyNewsProps) {
   const { data, isLoading, isError } = useCompanyNews(companyId);
   const refreshNews = useRefreshCompanyNews(companyId);
-  const handleRefresh = () => refreshNews.mutate();
+  const handleRefresh = () =>
+    refreshNews.mutate(undefined, {
+      onSuccess: (result) => {
+        toast.success(
+          result.added_count > 0
+            ? `Found ${result.added_count} new article${result.added_count === 1 ? "" : "s"}`
+            : "No new articles found",
+        );
+      },
+      onError: () => toast.error("News refresh failed. Please try again."),
+    });
 
   if (isLoading) {
     return <CompanyNewsSkeleton />;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Building2, Boxes, BrainCircuit, Star } from "lucide-react";
+import { Building2, Boxes, BrainCircuit, Layers3 } from "lucide-react";
 
 import { CompanyGrid, CompanySearch, Pagination, SectorFilter } from "@/components/company";
 
@@ -12,7 +12,7 @@ import type { CompanyFilters } from "@/types/company";
 
 const PAGE_SIZE = 12;
 
-function StatCard({
+function DirectoryStatCard({
   icon: Icon,
   label,
   value,
@@ -60,16 +60,25 @@ export function CompanyDirectoryPage() {
     isError: companiesError,
   } = useCompanies(filters);
 
+  // Unfiltered load, used only to build stable filter-dropdown option lists so
+  // the available options don't shrink/change as the user narrows the results.
+  const { data: allCompanies = [] } = useCompanies({});
+
   const { data: sectors = [], isError: sectorsError } = useSectors();
 
   const companyTypes = useMemo(
-    () => Array.from(new Set(companies.map((company) => company.company_type))).sort(),
-    [companies],
+    () => Array.from(new Set(allCompanies.map((company) => company.company_type))).sort(),
+    [allCompanies],
   );
 
   const maturities = useMemo(
-    () => Array.from(new Set(companies.map((company) => company.maturity))).sort(),
-    [companies],
+    () => Array.from(new Set(allCompanies.map((company) => company.maturity))).sort(),
+    [allCompanies],
+  );
+
+  const aiCategoryCount = useMemo(
+    () => new Set(allCompanies.map((company) => company.ai_category)).size,
+    [allCompanies],
   );
 
   const totalPages = Math.max(1, Math.ceil(companies.length / PAGE_SIZE));
@@ -119,13 +128,13 @@ export function CompanyDirectoryPage() {
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <StatCard icon={Building2} label="Companies" value={companies.length} />
+          <DirectoryStatCard icon={Building2} label="Companies" value={allCompanies.length} />
 
-          <StatCard icon={Boxes} label="Sectors" value={sectors.length} />
+          <DirectoryStatCard icon={Boxes} label="Sectors" value={sectors.length} />
 
-          <StatCard icon={BrainCircuit} label="AI Use Cases" value="356" />
+          <DirectoryStatCard icon={BrainCircuit} label="AI Categories" value={aiCategoryCount} />
 
-          <StatCard icon={Star} label="Maturity" value="4" />
+          <DirectoryStatCard icon={Layers3} label="Maturity Levels" value={maturities.length} />
         </div>
       </section>
 

@@ -13,7 +13,12 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     
     API_V1_PREFIX: str = "/api/v1"
-    
+
+    # Comma-separated list of allowed browser origins, e.g.
+    # "https://ai-atlas.vercel.app,https://staging.ai-atlas.vercel.app".
+    # Defaults to "*" for zero-friction local development.
+    ALLOWED_ORIGINS: str = "*"
+
     POSTGRES_DB : str = Field(default="ai_atlas")
     POSTGRES_USER : str = Field(default="postgres")
     POSTGRES_PASSWORD : str = Field(default="postgres")

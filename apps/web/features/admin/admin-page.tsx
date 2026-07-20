@@ -2,9 +2,10 @@
 
 import { type FormEvent, useState } from "react";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import { Check, Database, ExternalLink, LogOut, Search, X } from "lucide-react";
 
-import { Button, Card } from "@/components/ui";
+import { Button, Card, EmptyState, Input, LoadingSkeleton } from "@/components/ui";
 import { AdminGuard } from "@/components/admin/admin-guard";
 import { useCandidates, useDiscoverCompanies, useReviewCandidate } from "@/hooks/use-admin";
 import { useAuth } from "@/providers/auth-provider";
@@ -27,7 +28,25 @@ function AdminWorkspace() {
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    discover.mutate({ sector, country });
+    discover.mutate(
+      { sector, country },
+      {
+        onSuccess: (found) => {
+          toast.success(found.length ? `Found ${found.length} candidate${found.length === 1 ? "" : "s"} to review` : "No new candidates found for that search");
+        },
+        onError: () => toast.error("Discovery search failed. Please try again."),
+      },
+    );
+  };
+
+  const handleReview = (id: number, action: "approve" | "reject") => {
+    review.mutate(
+      { id, action },
+      {
+        onSuccess: () => toast.success(action === "approve" ? "Company approved and indexed" : "Candidate rejected"),
+        onError: () => toast.error("Could not update this candidate. Please try again."),
+      },
+    );
   };
 
   return (
@@ -36,75 +55,100 @@ function AdminWorkspace() {
         <div>
           <p className="text-sm font-medium text-cyan-300">Admin workspace</p>
           <h1 className="mt-2 text-3xl font-semibold text-white">Company discovery and review</h1>
-          <p className="mt-2 text-zinc-400">Review evidence before a company is added to the directory and indexed for Ask AI.</p>
+          <p className="mt-2 max-w-2xl text-zinc-400">Review evidence before a company is added to the directory and indexed for Ask AI.</p>
         </div>
 
         <div className="flex shrink-0 gap-2">
-          <Link href="/admin/companies" className="flex items-center gap-2 rounded-xl border border-white/10 px-4 py-2.5 text-sm text-zinc-300 hover:border-cyan-400/40 hover:text-cyan-300">
-            <Database className="h-4 w-4" />
-            Data management
-          </Link>
-          <button onClick={logout} className="flex items-center gap-2 rounded-xl border border-white/10 px-4 py-2.5 text-sm text-zinc-300 hover:border-red-400/40">
+          <Button variant="secondary" asChild>
+            <Link href="/admin/companies">
+              <Database className="h-4 w-4" />
+              Data management
+            </Link>
+          </Button>
+          <Button variant="secondary" onClick={logout}>
             <LogOut className="h-4 w-4" />
             Logout
-          </button>
+          </Button>
         </div>
       </div>
 
       <Card className="hover:translate-y-0">
-        <form onSubmit={submit} className="grid gap-4 md:grid-cols-[1fr_1fr_auto]">
-          <input value={sector} onChange={(e) => setSector(e.target.value)} placeholder="Sector" className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none" />
-          <input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Country" className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none" />
-          <Button disabled={discover.isPending}>
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-zinc-500">Discover companies</h2>
+        <form onSubmit={submit} className="grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
+          <div>
+            <label htmlFor="discover-sector" className="mb-1.5 block text-sm text-zinc-400">Sector</label>
+            <Input id="discover-sector" value={sector} onChange={(e) => setSector(e.target.value)} placeholder="e.g. Dairy Processing" className="h-12" />
+          </div>
+          <div>
+            <label htmlFor="discover-country" className="mb-1.5 block text-sm text-zinc-400">Country</label>
+            <Input id="discover-country" value={country} onChange={(e) => setCountry(e.target.value)} placeholder="e.g. Germany" className="h-12" />
+          </div>
+          <Button type="submit" disabled={discover.isPending || !sector.trim() || !country.trim()} className="h-12">
             <Search className="h-4 w-4" />
-            {discover.isPending ? "Discovering" : "Discover"}
+            {discover.isPending ? "Discovering..." : "Discover"}
           </Button>
         </form>
-        {discover.isError ? <p className="mt-4 text-sm text-red-300">Discovery failed. Verify the AI services and try again.</p> : null}
+        {discover.isError ? (
+          <p role="alert" className="mt-4 text-sm text-red-300">Discovery failed. Verify the AI services are configured and try again.</p>
+        ) : null}
       </Card>
 
       <section className="space-y-4">
         <h2 className="text-xl font-semibold text-white">Candidates</h2>
+
         {candidates.isLoading ? (
-          <p className="text-zinc-400">Loading candidates...</p>
+          <div className="space-y-3" aria-busy="true" aria-label="Loading candidates">
+            <LoadingSkeleton className="h-32 w-full" />
+            <LoadingSkeleton className="h-32 w-full" />
+          </div>
         ) : candidates.isError ? (
-          <p className="text-red-300">Could not load candidates. Try refreshing the page.</p>
+          <EmptyState title="Could not load candidates" description="Something went wrong. Try refreshing the page." />
         ) : candidates.data?.length ? (
-          candidates.data.map((candidate) => (
-            <Card key={candidate.id} className="hover:translate-y-0">
-              <div className="flex flex-col justify-between gap-5 md:flex-row">
-                <div>
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-lg font-semibold text-white">{candidate.name}</h3>
-                    <span className="rounded-full bg-cyan-400/10 px-2 py-1 text-xs text-cyan-300">{Math.round(candidate.confidence_score * 100)}% confidence</span>
-                    <span className="text-xs uppercase text-zinc-500">{candidate.status}</span>
+          <div className="space-y-4">
+            {candidates.data.map((candidate) => (
+              <Card key={candidate.id} className="hover:translate-y-0">
+                <div className="flex flex-col justify-between gap-5 md:flex-row">
+                  <div className="min-w-0 space-y-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-lg font-semibold text-white">{candidate.name}</h3>
+                      <span className="rounded-full bg-cyan-400/10 px-2.5 py-1 text-xs text-cyan-300">{Math.round(candidate.confidence_score * 100)}% confidence</span>
+                      <span className="rounded-full bg-white/5 px-2.5 py-1 text-xs uppercase tracking-wide text-zinc-400">{candidate.status}</span>
+                    </div>
+                    <p className="text-sm text-zinc-400">{candidate.category} · {candidate.country}</p>
+                    <p className="text-sm leading-relaxed text-zinc-300">{candidate.use_cases}</p>
+                    <div className="space-y-2 pt-1">
+                      {candidate.evidence.map((evidence) => (
+                        <a key={evidence.url} href={evidence.url} target="_blank" rel="noreferrer" className="block rounded-lg bg-black/20 p-3.5 text-sm leading-relaxed text-zinc-300 transition hover:text-cyan-300">
+                          <span className="font-medium">{evidence.source}</span>: {evidence.snippet} <ExternalLink className="ml-1 inline h-3.5 w-3.5" />
+                        </a>
+                      ))}
+                    </div>
                   </div>
-                  <p className="mt-2 text-sm text-zinc-400">{candidate.category} · {candidate.country}</p>
-                  <p className="mt-3 text-sm text-zinc-300">{candidate.use_cases}</p>
-                  <div className="mt-4 space-y-2">
-                    {candidate.evidence.map((evidence) => (
-                      <a key={evidence.url} href={evidence.url} target="_blank" rel="noreferrer" className="block rounded-lg bg-black/20 p-3 text-sm text-zinc-300 hover:text-cyan-300">
-                        <span className="font-medium">{evidence.source}</span>: {evidence.snippet} <ExternalLink className="ml-1 inline h-3.5 w-3.5" />
-                      </a>
-                    ))}
-                  </div>
+                  {candidate.status === "pending" ? (
+                    <div className="flex shrink-0 gap-2">
+                      <Button
+                        onClick={() => handleReview(candidate.id, "approve")}
+                        disabled={review.isPending}
+                      >
+                        <Check className="h-4 w-4" />
+                        Approve
+                      </Button>
+                      <Button
+                        variant="danger"
+                        onClick={() => handleReview(candidate.id, "reject")}
+                        disabled={review.isPending}
+                      >
+                        <X className="h-4 w-4" />
+                        Reject
+                      </Button>
+                    </div>
+                  ) : null}
                 </div>
-                {candidate.status === "pending" ? (
-                  <div className="flex shrink-0 gap-2">
-                    <Button onClick={() => review.mutate({ id: candidate.id, action: "approve" })}>
-                      <Check className="h-4 w-4" />
-                      Approve
-                    </Button>
-                    <button onClick={() => review.mutate({ id: candidate.id, action: "reject" })} className="rounded-xl border border-white/10 px-4 text-sm text-zinc-300 hover:border-red-400/40">
-                      <X className="inline h-4 w-4" /> Reject
-                    </button>
-                  </div>
-                ) : null}
-              </div>
-            </Card>
-          ))
+              </Card>
+            ))}
+          </div>
         ) : (
-          <p className="text-zinc-400">No candidates yet. Start a discovery search above.</p>
+          <EmptyState title="No candidates yet" description="Start a discovery search above to find real, evidence-backed AI vendors." />
         )}
       </section>
     </div>
