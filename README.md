@@ -76,6 +76,8 @@ Copy `.env.example` and set:
 | `EMBEDDING_PROVIDER`, `EMBEDDING_MODEL` | Embedding provider/model used during ingestion and retrieval. |
 | `GNEWS_API_KEY` | Optional company-news provider key. |
 | `NEWS_SCHEDULER_ENABLED`, `NEWS_REFRESH_INTERVAL_MINUTES` | Enables periodic news refreshes in the API process. |
+| `JWT_SECRET`, `JWT_ALGORITHM`, `ACCESS_TOKEN_EXPIRE_MINUTES` | Signs and validates admin session tokens. Set a real `JWT_SECRET` before deploying anywhere public. |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Bootstrap admin account, auto-created on first API startup if it doesn't already exist. Used to log in and obtain a token for `/api/v1/admin/*`. |
 | `NEXT_PUBLIC_API_URL` | Frontend API base URL, normally `http://localhost:8000/api/v1`. |
 
 ## Dataset ingestion and indexing
@@ -91,7 +93,10 @@ Copy `.env.example` and set:
 | GET | `/api/v1/companies/{id}/news` | Stored company news |
 | POST | `/api/v1/companies/{id}/news/refresh` | Refresh company news |
 | POST | `/api/v1/ai/ask` | Grounded Ask AI response and sources |
-| POST | `/api/v1/admin/discover` | Evidence-backed admin candidate discovery |
+| POST | `/api/v1/auth/login` | Admin login; returns a bearer token |
+| POST | `/api/v1/admin/discover` | Evidence-backed admin candidate discovery (requires admin bearer token) |
+
+All `/api/v1/admin/*` routes require an `Authorization: Bearer <token>` header from a successful `/api/v1/auth/login`. Log in with `ADMIN_EMAIL`/`ADMIN_PASSWORD` (the bootstrap admin account created automatically on API startup).
 
 ## Demo walkthrough
 

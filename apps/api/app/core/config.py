@@ -38,7 +38,10 @@ class Settings(BaseSettings):
     JWT_SECRET : str = "change-me"
     JWT_ALGORITHM : str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES : int = 60
-    
+
+    ADMIN_EMAIL : str = "admin@aiatlas.local"
+    ADMIN_PASSWORD : str = "change-me"
+
 @lru_cache()
 def get_settings() -> Settings:
     return Settings()
