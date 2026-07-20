@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     POSTGRES_HOST : str = Field(default="localhost")
     POSTGRES_PORT : int = Field(default=5432)
     
-    DATABASE_URL : str = "postgresql+psycopg://postgres:postgres@localhost:5434/ai_atlas"
+    DATABASE_URL : str = "postgresql+psycopg://postgres:postgres@localhost:5432/ai_atlas"
     
     REDIS_URL : str = "redis://localhost:6379"
     
