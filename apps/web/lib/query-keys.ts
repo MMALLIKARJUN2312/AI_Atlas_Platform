@@ -7,5 +7,7 @@ export const queryKeys = {
 
   problems: (companyId: number | string) => ["problems", companyId] as const,
 
+  companyNews: (companyId: number | string) => ["companies", companyId, "news"] as const,
+
   sectors: ["sectors"] as const,
 };

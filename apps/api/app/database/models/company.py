@@ -1,5 +1,5 @@
 from sqlalchemy import String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base import Base 
 from app.database.models.mixins import TimestampMixin
@@ -21,3 +21,4 @@ class Company(TimestampMixin, Base):
     maturity : Mapped[str] = mapped_column(String(100))
     top_deployment_evidence : Mapped[str] = mapped_column(Text)
     website : Mapped[str] = mapped_column(String(255))    
+    news: Mapped[list["News"]] = relationship(back_populates="company", cascade="all, delete-orphan")

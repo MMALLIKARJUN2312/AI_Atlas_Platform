@@ -32,6 +32,8 @@ class Settings(BaseSettings):
     EMBEDDING_MODEL: str = ""
     
     GNEWS_API_KEY : str = ""
+    NEWS_SCHEDULER_ENABLED: bool = False
+    NEWS_REFRESH_INTERVAL_MINUTES: int = 360
     
     JWT_SECRET : str = "change-me"
     JWT_ALGORITHM : str = "HS256"

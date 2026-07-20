@@ -2,6 +2,7 @@ export * from "./company-card";
 export * from "./company-details-grid";
 export * from "./company-grid";
 export * from "./company-header";
+export * from "./company-news";
 export * from "./company-overview";
 export * from "./pagination";
 export * from "./company-search";

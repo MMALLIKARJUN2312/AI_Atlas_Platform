@@ -4,5 +4,6 @@ from app.database.models.problem_company_mapping import ProblemCompanyMapping
 from app.database.models.sector import Sector
 from app.database.models.user import User
 from app.database.models.embedding import Embedding
+from app.database.models.news import News
 
-__all__ = ["User", "Company", "Problem", "ProblemCompanyMapping", "Sector", "Embedding"]
+__all__ = ["User", "Company", "Problem", "ProblemCompanyMapping", "Sector", "Embedding", "News"]

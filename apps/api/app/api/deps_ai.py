@@ -20,6 +20,8 @@ from app.rag.retrievers.context_builder import ContextBuilder
 from app.rag.retrievers.retrieval_pipeline import RetrievalPipeline
 from app.rag.retrievers.semantic_retriever import SemanticRetriever
 from app.rag.vector_store.pgvector_store import PGVectorStore
+from app.rag.vector_store.indexing_service import IndexingService
+from app.rag.chunkers.recursive_chunker import RecursiveChunker
 
 
 Database = Annotated[AsyncSession, Depends(get_database)]
@@ -41,6 +43,16 @@ def get_embedding_service() -> EmbeddingService:
 
 def get_vector_store(db: Database) -> PGVectorStore:
     return PGVectorStore(db)
+
+def get_indexing_service(
+    vector_store: PGVectorStore = Depends(get_vector_store),
+    embedding_service: EmbeddingService = Depends(get_embedding_service),
+) -> IndexingService:
+    return IndexingService(
+        chunker=RecursiveChunker(),
+        embedding_service=embedding_service,
+        vector_store=vector_store,
+    )
 
 def get_retriever(vector_store: PGVectorStore = Depends(get_vector_store), embedding_service: EmbeddingService = Depends(get_embedding_service)) -> SemanticRetriever:
 

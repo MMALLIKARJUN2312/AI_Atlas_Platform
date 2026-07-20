@@ -5,6 +5,7 @@ import { type ReactNode, use, useState } from "react";
 import {
   CompanyDetailsGrid,
   CompanyHeader,
+  CompanyNews,
   CompanyOverview,
   CompanyTags,
 } from "@/components/company";
@@ -132,10 +133,7 @@ export function CompanyDetailPage({ params }: CompanyDetailPageProps) {
             )}
           </Card>
         ) : (
-          <EmptyState
-            title="Newsletter coming soon"
-            description="News automation will populate this section."
-          />
+          <CompanyNews companyId={company.id} />
         )}
       </div>
     </div>
