@@ -16,3 +16,11 @@ export interface Company {
   created_at?: string;
   updated_at?: string;
 }
+
+export interface CompanyFilters {
+  search?: string;
+  segment?: string;
+  companyType?: string;
+  maturity?: string;
+  aiCategory?: string;
+}

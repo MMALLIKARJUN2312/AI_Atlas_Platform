@@ -3,11 +3,14 @@
 import { useMemo, useState } from "react";
 import { Building2, Boxes, BrainCircuit, Star } from "lucide-react";
 
-import { CompanyGrid, CompanySearch, SectorFilter } from "@/components/company";
+import { CompanyGrid, CompanySearch, Pagination, SectorFilter } from "@/components/company";
 
 import { EmptyState, GlassPanel, LoadingSkeleton } from "@/components/ui";
 
 import { useCompanies, useSectors } from "@/hooks";
+import type { CompanyFilters } from "@/types/company";
+
+const PAGE_SIZE = 12;
 
 function StatCard({
   icon: Icon,
@@ -35,14 +38,27 @@ function StatCard({
 
 export function CompanyDirectoryPage() {
   const [search, setSearch] = useState("");
-
   const [sector, setSector] = useState("");
+  const [companyType, setCompanyType] = useState("");
+  const [maturity, setMaturity] = useState("");
+  const [aiCategory, setAiCategory] = useState("");
+  const [page, setPage] = useState(1);
 
+  const filters = useMemo<CompanyFilters>(
+    () => ({
+      search,
+      segment: sector,
+      companyType,
+      maturity,
+      aiCategory,
+    }),
+    [aiCategory, companyType, maturity, search, sector],
+  );
   const {
     data: companies = [],
     isLoading: companiesLoading,
     isError: companiesError,
-  } = useCompanies();
+  } = useCompanies(filters);
 
   const { data: sectors = [], isError: sectorsError } = useSectors();
 
@@ -51,21 +67,17 @@ export function CompanyDirectoryPage() {
     [companies],
   );
 
-  const [companyType, setCompanyType] = useState("");
+  const maturities = useMemo(
+    () => Array.from(new Set(companies.map((company) => company.maturity))).sort(),
+    [companies],
+  );
 
-  const filteredCompanies = useMemo(() => {
-    return companies.filter((c) => {
-      const matchesSearch =
-        c.vendor_name.toLowerCase().includes(search.toLowerCase()) ||
-        c.ai_category.toLowerCase().includes(search.toLowerCase());
-
-      const matchesSector = !sector || c.segment_tags.includes(sector);
-
-      const matchesCompanyType = !companyType || c.company_type === companyType;
-
-      return matchesSearch && matchesSector && matchesCompanyType;
-    });
-  }, [companies, search, sector, companyType]);
+  const totalPages = Math.max(1, Math.ceil(companies.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedCompanies = useMemo(
+    () => companies.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [companies, currentPage],
+  );
 
   if (companiesLoading) {
     return <CompanyDirectorySkeleton />;
@@ -98,7 +110,14 @@ export function CompanyDirectoryPage() {
           </p>
 
           <div className="mt-10">
-            <CompanySearch value={search} total={companies.length} onChange={setSearch} />
+            <CompanySearch
+              value={search}
+              total={companies.length}
+              onChange={(value) => {
+                setSearch(value);
+                setPage(1);
+              }}
+            />
           </div>
         </div>
 
@@ -119,34 +138,77 @@ export function CompanyDirectoryPage() {
         {sectorsError ? (
           <p className="text-sm text-amber-300">Sector filters are temporarily unavailable.</p>
         ) : (
-          <SectorFilter sectors={sectors} selectedSector={sector} onSelect={setSector} />
+          <SectorFilter
+            sectors={sectors}
+            selectedSector={sector}
+            onSelect={(value) => {
+              setSector(value);
+              setPage(1);
+            }}
+          />
         )}
 
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-slate-400">Showing {filteredCompanies.length} companies</p>
+          <p className="text-slate-400">Showing {companies.length} companies</p>
 
-          <select
-            value={companyType}
-            onChange={(event) => setCompanyType(event.target.value)}
-            aria-label="Filter by company type"
-            className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
-          >
-            <option value="">All company types</option>
-            {companyTypes.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <select
+              value={companyType}
+              onChange={(event) => {
+                setCompanyType(event.target.value);
+                setPage(1);
+              }}
+              aria-label="Filter by company type"
+              className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
+            >
+              <option value="">All company types</option>
+              {companyTypes.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={maturity}
+              onChange={(event) => {
+                setMaturity(event.target.value);
+                setPage(1);
+              }}
+              aria-label="Filter by maturity"
+              className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
+            >
+              <option value="">All maturity levels</option>
+              {maturities.map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+
+            <input
+              value={aiCategory}
+              onChange={(event) => {
+                setAiCategory(event.target.value);
+                setPage(1);
+              }}
+              placeholder="AI category"
+              aria-label="Filter by AI category"
+              className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm placeholder:text-zinc-500"
+            />
+          </div>
         </div>
       </section>
 
       {/* Grid */}
 
-      {filteredCompanies.length === 0 ? (
+      {companies.length === 0 ? (
         <EmptyState title="No Companies" description="Try changing the search or filters." />
       ) : (
-        <CompanyGrid companies={filteredCompanies} />
+        <>
+          <CompanyGrid companies={paginatedCompanies} />
+          <Pagination page={currentPage} totalPages={totalPages} onPageChange={setPage} />
+        </>
       )}
     </div>
   );

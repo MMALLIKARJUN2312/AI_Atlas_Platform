@@ -26,14 +26,18 @@ Service = Annotated[CompanyService, Depends(get_company_service)]
 async def get_companies(
     service: Service,
     search: str | None = Query(default=None),
+    segment: str | None = Query(default=None),
+    company_type: str | None = Query(default=None),
+    maturity: str | None = Query(default=None),
+    ai_category: str | None = Query(default=None),
 ):
-
-    if search:
-        companies = await service.search(search)
-    else:
-        companies = await service.get_all()
-
-    return companies
+    return await service.list_companies(
+        search=search,
+        segment=segment,
+        company_type=company_type,
+        maturity=maturity,
+        ai_category=ai_category,
+    )
 
 
 @router.get(
