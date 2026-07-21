@@ -5,7 +5,7 @@ import { clearStoredToken, getStoredToken } from "@/lib/auth-storage";
 
 export const apiClient = axios.create({
   baseURL:
-    process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1",
+    process.env.NEXT_PUBLIC_API_URL ?? "https://ai-atlas-platform-lf0b.onrender.com/api/v1",
   headers: {
     "Content-Type": "application/json",
   },
