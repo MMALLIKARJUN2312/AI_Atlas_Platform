@@ -143,3 +143,74 @@ async def test_discover_creates_candidate_with_grounded_evidence():
     assert candidate.website == "https://acme.ai"
     assert candidate.evidence == [{"source": "Acme AI", "snippet": "Acme AI provides sorting robots for German dairies.", "url": "https://acme.ai"}]
     assert candidate.confidence_score == 0.65
+
+
+class RateLimitedLLM:
+    def search(self, query: str):
+        raise Exception("429 RESOURCE_EXHAUSTED: quota exceeded for this project")
+
+
+class BrokenLLM:
+    def search(self, query: str):
+        raise Exception("Something unrelated went wrong")
+
+
+class FakeRetrievalPipeline:
+    def __init__(self, results):
+        self._results = results
+
+    async def retrieve(self, query: str):
+        return SimpleNamespace(results=self._results, context="")
+
+
+class FakeRetrievalDb(FakeDb):
+    """Answers the two scalars() calls _fallback_existing_matches makes, in order:
+    first the matching Company rows, then any already-flagged candidate names."""
+
+    def __init__(self, companies):
+        super().__init__()
+        self._scalars_queue = [companies, []]
+
+    async def scalars(self, statement):
+        return self._scalars_queue.pop(0)
+
+
+@pytest.mark.asyncio
+async def test_discover_falls_back_to_existing_matches_when_rate_limited():
+    company = SimpleNamespace(
+        id=42, vendor_name="Acme Dairy AI", country="Germany", ai_category="Dairy AI",
+        segment_tags="1", food_beverage_ai_use_case="CIP monitoring",
+        website="acme.example", top_deployment_evidence="Deployed at a major dairy plant.",
+    )
+    retrieval = FakeRetrievalPipeline([
+        SimpleNamespace(document_type="company", metadata={"company_id": 42}, similarity_score=0.82),
+    ])
+    db = FakeRetrievalDb(companies=[company])
+    service = AdminService(db, llm=RateLimitedLLM(), indexing=None, retrieval=retrieval)
+
+    result = await service.discover(DISCOVERY_REQUEST)
+
+    assert len(result) == 1
+    assert result[0].name == "Acme Dairy AI"
+    assert result[0].status == "existing"
+    assert result[0].website == "https://acme.example"
+    assert result[0].confidence_score == 0.82
+
+
+@pytest.mark.asyncio
+async def test_discover_fallback_returns_empty_without_retrieval_configured():
+    service = AdminService(FakeDb(), llm=RateLimitedLLM(), indexing=None)
+
+    result = await service.discover(DISCOVERY_REQUEST)
+
+    assert result == []
+
+
+@pytest.mark.asyncio
+async def test_discover_raises_502_for_non_rate_limit_errors():
+    service = AdminService(FakeDb(), llm=BrokenLLM(), indexing=None)
+
+    with pytest.raises(HTTPException) as error:
+        await service.discover(DISCOVERY_REQUEST)
+
+    assert error.value.status_code == 502

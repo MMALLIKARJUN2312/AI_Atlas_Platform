@@ -32,7 +32,12 @@ function AdminWorkspace() {
       { sector, country },
       {
         onSuccess: (found) => {
-          toast.success(found.length ? `Found ${found.length} candidate${found.length === 1 ? "" : "s"} to review` : "No new candidates found for that search");
+          const existingOnly = found.length > 0 && found.every((candidate) => candidate.status === "existing");
+          if (existingOnly) {
+            toast(`AI search is rate-limited right now — showing ${found.length} match${found.length === 1 ? "" : "es"} already in your directory instead`, { icon: "⚠️" });
+          } else {
+            toast.success(found.length ? `Found ${found.length} candidate${found.length === 1 ? "" : "s"} to review` : "No new candidates found for that search");
+          }
         },
         onError: () => toast.error("Discovery search failed. Please try again."),
       },
@@ -111,8 +116,14 @@ function AdminWorkspace() {
                   <div className="min-w-0 space-y-3">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="text-lg font-semibold text-white">{candidate.name}</h3>
-                      <span className="rounded-full bg-cyan-400/10 px-2.5 py-1 text-xs text-cyan-300">{Math.round(candidate.confidence_score * 100)}% confidence</span>
-                      <span className="rounded-full bg-white/5 px-2.5 py-1 text-xs uppercase tracking-wide text-zinc-400">{candidate.status}</span>
+                      <span className="rounded-full bg-cyan-400/10 px-2.5 py-1 text-xs text-cyan-300">
+                        {Math.round(candidate.confidence_score * 100)}% {candidate.status === "existing" ? "match" : "confidence"}
+                      </span>
+                      {candidate.status === "existing" ? (
+                        <span className="rounded-full bg-amber-400/10 px-2.5 py-1 text-xs uppercase tracking-wide text-amber-300">Already in directory</span>
+                      ) : (
+                        <span className="rounded-full bg-white/5 px-2.5 py-1 text-xs uppercase tracking-wide text-zinc-400">{candidate.status}</span>
+                      )}
                     </div>
                     <p className="text-sm text-zinc-400">{candidate.category} · {candidate.country}</p>
                     <p className="text-sm leading-relaxed text-zinc-300">{candidate.use_cases}</p>

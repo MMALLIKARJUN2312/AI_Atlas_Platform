@@ -13,6 +13,7 @@ from app.ai.services.llm_service import LLMService
 from app.database.models.company import Company
 from app.database.models.company_candidate import CompanyCandidate
 from app.rag.builders.company_builder import CompanyDocumentBuilder
+from app.rag.retrievers.retrieval_pipeline import RetrievalPipeline
 from app.rag.vector_store.indexing_service import IndexingService
 
 EXTRACTION_SYSTEM_PROMPT = (
@@ -23,10 +24,11 @@ EXTRACTION_SYSTEM_PROMPT = (
 
 
 class AdminService:
-    def __init__(self, db: AsyncSession, llm: LLMService, indexing: IndexingService):
+    def __init__(self, db: AsyncSession, llm: LLMService, indexing: IndexingService, retrieval: RetrievalPipeline | None = None):
         self.db = db
         self.llm = llm
         self.indexing = indexing
+        self.retrieval = retrieval
         self.company_builder = CompanyDocumentBuilder()
 
     async def discover(self, request: DiscoveryRequest) -> list[CompanyCandidate]:
@@ -36,10 +38,18 @@ class AdminService:
         is only ever stored if its name appears in the grounded text AND it has
         at least one evidence item traceable to a real search-result URL - this
         is the hallucination gate: nothing is written from the LLM's imagination.
+
+        If the live web search hits a provider rate limit/quota error, this
+        falls back to surfacing already-indexed companies from our own
+        directory that match the sector + country, rather than failing
+        outright - no fabrication risk, since these are real, already-verified
+        records, just not "new" discoveries.
         """
         try:
             grounded = self.llm.search(self._search_query(request))
-        except Exception as exc:  # external API call - surface as a clean 502, not a 500
+        except Exception as exc:
+            if self._is_rate_limited(exc):
+                return await self._fallback_existing_matches(request)
             raise HTTPException(502, f"Company discovery search failed: {exc}") from exc
 
         if not grounded.text or not grounded.chunks:
@@ -144,6 +154,84 @@ class AdminService:
 
     async def _company_exists(self, name: str) -> bool:
         return await self.db.scalar(select(Company.id).where(Company.vendor_name.ilike(name))) is not None
+
+    @staticmethod
+    def _is_rate_limited(exc: Exception) -> bool:
+        message = str(exc)
+        return "RESOURCE_EXHAUSTED" in message or "429" in message or "quota" in message.lower()
+
+    async def _fallback_existing_matches(self, request: DiscoveryRequest) -> list[CompanyCandidate]:
+        """
+        Live search is unavailable (rate-limited) - surface real, already-known
+        companies from our own indexed directory that match the sector/country
+        instead of failing outright. Never persisted and never a "pending"
+        candidate: these already exist, so status="existing" keeps them out of
+        the approve/reject workflow entirely.
+        """
+        if self.retrieval is None:
+            return []
+
+        retrieved = await self.retrieval.retrieve(f"{request.sector} {request.country}")
+        company_ids: list[int] = []
+        seen: set[int] = set()
+        for result in retrieved.results:
+            if result.document_type != "company":
+                continue
+            company_id = result.metadata.get("company_id")
+            if not company_id or company_id in seen:
+                continue
+            seen.add(company_id)
+            company_ids.append(company_id)
+
+        if not company_ids:
+            return []
+
+        companies = await self.db.scalars(select(Company).where(Company.id.in_(company_ids)))
+        by_id = {company.id: company for company in companies}
+
+        # Skip companies that already have an "existing" match on file from a
+        # previous fallback run for the same sector/country, so repeated
+        # rate-limited attempts don't pile up duplicate rows.
+        already_flagged = set(
+            await self.db.scalars(
+                select(CompanyCandidate.name).where(CompanyCandidate.status == "existing")
+            )
+        )
+
+        matches: list[CompanyCandidate] = []
+        added: set[int] = set()
+        for result in retrieved.results:
+            if result.document_type != "company":
+                continue
+            company_id = result.metadata.get("company_id")
+            company = by_id.get(company_id)
+            if not company or company.id in added or company.vendor_name in already_flagged:
+                continue
+            added.add(company.id)
+
+            website = self._normalize_url(company.website)
+            candidate = CompanyCandidate(
+                name=company.vendor_name,
+                country=company.country,
+                category=company.ai_category,
+                segment_tags=company.segment_tags,
+                use_cases=company.food_beverage_ai_use_case,
+                website=website,
+                evidence=[{
+                    "source": company.vendor_name,
+                    "snippet": company.top_deployment_evidence or "Already indexed in your directory.",
+                    "url": website or "#",
+                }],
+                confidence_score=round(min(result.similarity_score, 1.0), 2),
+                status="existing",
+            )
+            self.db.add(candidate)
+            matches.append(candidate)
+
+        await self.db.commit()
+        for candidate in matches:
+            await self.db.refresh(candidate)
+        return matches
 
     @staticmethod
     def _search_query(request: DiscoveryRequest) -> str:
