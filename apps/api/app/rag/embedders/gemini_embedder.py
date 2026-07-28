@@ -4,6 +4,7 @@ from google import genai
 from google.genai import types
 
 from app.core.config import settings
+from app.ai.providers.rate_limit import call_with_retry
 from app.rag.embedders.base_embedder import BaseEmbedder
 from app.rag.embedders.embedding_config import EmbeddingConfig
 from app.rag.schemas.knowledge_chunk import KnowledgeChunk
@@ -19,14 +20,14 @@ class GeminiEmbedder(BaseEmbedder):
         results : list[EmbeddedChunk] = []
         
         for chunk in chunks:
-            response = self.client.models.embed_content(
+            response = call_with_retry(lambda chunk=chunk: self.client.models.embed_content(
             model=self.config.model,
             contents=chunk.text,
             config=types.EmbedContentConfig(
                 output_dimensionality=self.config.dimensions
                 ),
-            )
-            
+            ))
+
             vector = response.embeddings[0].values
             
             results.append(
@@ -41,12 +42,12 @@ class GeminiEmbedder(BaseEmbedder):
         return results
     
     def embed_query(self, query: str) -> list[float]:
-        response = self.client.models.embed_content(
+        response = call_with_retry(lambda: self.client.models.embed_content(
             model=self.config.model,
             contents=query,
             config=types.EmbedContentConfig(
                 output_dimensionality=self.config.dimensions
             ),
-        )
+        ))
 
         return response.embeddings[0].values

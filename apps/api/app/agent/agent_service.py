@@ -5,6 +5,7 @@ import logging
 from app.agent.agent_prompt import AGENT_SYSTEM_PROMPT
 from app.agent.schemas import AgentResponse, AgentStep
 from app.agent.tool_registry import ToolRegistry
+from app.ai.providers.rate_limit import is_rate_limited
 from app.ai.schemas.citation import Source
 from app.ai.schemas.tool_spec import AgentMessage
 from app.ai.services.llm_service import LLMService
@@ -56,11 +57,28 @@ class AgentService:
             # what forces the model to commit to an answer instead of asking
             # for yet another lookup we would have to ignore.
             last_iteration = iteration == self.max_iterations
-            response = self.llm_service.generate_with_tools(
-                messages=messages,
-                tools=[] if last_iteration else self.registry.specs,
-                system_prompt=AGENT_SYSTEM_PROMPT,
-            )
+            try:
+                response = self.llm_service.generate_with_tools(
+                    messages=messages,
+                    tools=[] if last_iteration else self.registry.specs,
+                    system_prompt=AGENT_SYSTEM_PROMPT,
+                )
+            except Exception as exc:
+                if not is_rate_limited(exc):
+                    raise
+                # Already retried transparently inside the provider adapter -
+                # if it's still rate limited here the quota is genuinely
+                # exhausted for now. Surface that honestly instead of a 500,
+                # using whatever was already gathered this request.
+                logger.warning("Agent reasoning step rate limited after retries")
+                answer = (
+                    "I'm temporarily rate-limited by the AI provider and can't finish reasoning "
+                    "through this right now. Please try again in a moment."
+                    if not sources
+                    else "I found some information before hitting a temporary rate limit - here's what I have so far, "
+                    "though I wasn't able to fully reason through your question."
+                )
+                break
 
             if not response.invocations:
                 answer = response.text

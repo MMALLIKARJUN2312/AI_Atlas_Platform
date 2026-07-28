@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from app.ai.prompts.prompt_builder import PromptBuilder
+from app.ai.providers.rate_limit import is_rate_limited
 from app.ai.services.llm_service import LLMService
 from app.ai.schemas.ask_ai_response import AskAIResponse
 from app.ai.schemas.llm_request import LLMRequest
@@ -29,7 +30,15 @@ class AskAIService:
 
         prompt = self.prompt_builder.build(query=question, context=retrieval.context,)
         request = LLMRequest(system_prompt=prompt.system_prompt, user_prompt=prompt.user_prompt)
-        llm_response = self.llm_service.generate(request)
+        try:
+            llm_response = self.llm_service.generate(request)
+        except Exception as exc:
+            if not is_rate_limited(exc):
+                raise
+            return AskAIResponse(
+                answer="I'm temporarily rate-limited by the AI provider. Please try again in a moment.",
+                sources=[],
+            )
         citations = self.citation_service.build(retrieval.results)
 
         return AskAIResponse(answer=llm_response.text, sources=citations)

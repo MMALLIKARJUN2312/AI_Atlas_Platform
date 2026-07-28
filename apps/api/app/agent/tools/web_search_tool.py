@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 
 from app.agent.tools.base_tool import BaseTool, ToolResult
+from app.ai.providers.rate_limit import is_rate_limited
 from app.ai.schemas.citation import Source
 from app.ai.schemas.tool_spec import ToolParameter, ToolSpec
 from app.ai.services.llm_service import LLMService
@@ -58,7 +59,7 @@ class WebSearchTool(BaseTool):
             grounded = self.llm_service.search(query)
         except Exception as exc:
             logger.warning("Live web search unavailable for %r: %s", query, exc)
-            if self._is_rate_limited(exc):
+            if is_rate_limited(exc):
                 return ToolResult(
                     observation=(
                         "Live web search is temporarily unavailable (provider rate limit). "
@@ -99,8 +100,3 @@ class WebSearchTool(BaseTool):
             metadata={"results": len(sources), "query": query},
             grounded=bool(sources),
         )
-
-    @staticmethod
-    def _is_rate_limited(exc: Exception) -> bool:
-        message = str(exc)
-        return "RESOURCE_EXHAUSTED" in message or "429" in message or "quota" in message.lower()

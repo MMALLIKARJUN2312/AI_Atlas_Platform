@@ -10,6 +10,7 @@ from app.ai.schemas.llm_response import LLMResponse
 from app.ai.schemas.tool_spec import AgentMessage, ToolAwareResponse, ToolInvocation, ToolSpec
 from app.ai.providers.base_llm import BaseLLM
 from app.ai.providers.llm_config import LLMConfig
+from app.ai.providers.rate_limit import call_with_retry
 
 class GeminiLLM(BaseLLM):
     """
@@ -21,14 +22,14 @@ class GeminiLLM(BaseLLM):
         self.client = genai.Client(api_key=settings.LLM_API_KEY)
 
     def generate(self, request : LLMRequest) -> LLMResponse:
-        response = self.client.models.generate_content(model=self.config.model,
+        response = call_with_retry(lambda: self.client.models.generate_content(model=self.config.model,
             contents=[request.system_prompt, request.user_prompt], config={"temperature" : request.temperature, "max_output_tokens" : request.max_output_tokens}
-        )
+        ))
 
         return LLMResponse(text = response.text.strip(), model = self.config.model)
 
     def search(self, query: str, *, temperature: float = 0.2, max_output_tokens: int = 2048) -> GroundedLLMResponse:
-        response = self.client.models.generate_content(
+        response = call_with_retry(lambda: self.client.models.generate_content(
             model=self.config.model,
             contents=query,
             config={
@@ -36,7 +37,7 @@ class GeminiLLM(BaseLLM):
                 "max_output_tokens": max_output_tokens,
                 "tools": [{"google_search": {}}],
             },
-        )
+        ))
 
         candidates = response.candidates or []
         grounding = candidates[0].grounding_metadata if candidates else None
@@ -86,11 +87,11 @@ class GeminiLLM(BaseLLM):
             automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
         )
 
-        response = self.client.models.generate_content(
+        response = call_with_retry(lambda: self.client.models.generate_content(
             model=self.config.model,
             contents=[self._content(message) for message in messages],
             config=config,
-        )
+        ))
 
         invocations = [
             ToolInvocation(

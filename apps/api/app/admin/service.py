@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.admin.discovery_verifier import DiscoveryVerifier
 from app.admin.schemas import CompanyWrite, DiscoveryRequest
+from app.ai.providers.rate_limit import is_rate_limited
 from app.ai.schemas.grounded_llm_response import GroundedLLMResponse
 from app.ai.schemas.llm_request import LLMRequest
 from app.ai.services.llm_service import LLMService
@@ -66,19 +67,26 @@ class AdminService:
         try:
             grounded = self.llm.search(self._search_query(request))
         except Exception as exc:
-            if self._is_rate_limited(exc):
+            if is_rate_limited(exc):
                 return await self._fallback_existing_matches(request)
             raise HTTPException(502, f"Company discovery search failed: {exc}") from exc
 
         if not grounded.text or not grounded.chunks:
             return []
 
+        try:
+            extracted = self._extract_candidates(grounded)
+        except Exception as exc:
+            if is_rate_limited(exc):
+                return await self._fallback_existing_matches(request)
+            raise HTTPException(502, f"Company discovery extraction failed: {exc}") from exc
+
         candidates: list[CompanyCandidate] = []
         auto_approved: list[Company] = []
         seen: set[str] = set()
         verifications_used = 0
 
-        for item in self._extract_candidates(grounded):
+        for item in extracted:
             name = (item.get("name") or "").strip()
             if not name or name.casefold() in seen:
                 continue
@@ -207,11 +215,6 @@ class AdminService:
 
     async def _company_exists(self, name: str) -> bool:
         return await self.db.scalar(select(Company.id).where(Company.vendor_name.ilike(name))) is not None
-
-    @staticmethod
-    def _is_rate_limited(exc: Exception) -> bool:
-        message = str(exc)
-        return "RESOURCE_EXHAUSTED" in message or "429" in message or "quota" in message.lower()
 
     async def _fallback_existing_matches(self, request: DiscoveryRequest) -> list[CompanyCandidate]:
         """

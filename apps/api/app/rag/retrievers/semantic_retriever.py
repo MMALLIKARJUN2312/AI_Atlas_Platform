@@ -1,9 +1,14 @@
 from __future__ import annotations
 
+import logging
+
+from app.ai.providers.rate_limit import is_rate_limited
 from app.rag.embedders.embedding_service import EmbeddingService
 from app.rag.retrievers.retrieval_config import RetrievalConfig
 from app.rag.retrievers.retrieval_result import RetrievalResult
 from app.rag.vector_store.pgvector_store import PGVectorStore
+
+logger = logging.getLogger(__name__)
 
 
 class SemanticRetriever:
@@ -19,7 +24,17 @@ class SemanticRetriever:
 
         top_k = top_k or RetrievalConfig.DEFAULT_TOP_K
 
-        query_embedding = self.embedding_service.embed_query(query)
+        try:
+            query_embedding = self.embedding_service.embed_query(query)
+        except Exception as exc:
+            # Embedding the query is the one Gemini call every single question
+            # makes, so a still-rate-limited provider degrades to "nothing
+            # found" here rather than a raw 500 - callers (the knowledge-base
+            # tool, /ai/ask) already treat an empty result as an honest miss.
+            if not is_rate_limited(exc):
+                raise
+            logger.warning("Query embedding rate limited, returning empty retrieval for %r", query)
+            return []
 
         rows = await self.vector_store.similarity_search(embedding=query_embedding, top_k=top_k)
 
