@@ -33,8 +33,15 @@ function AdminWorkspace() {
       {
         onSuccess: (found) => {
           const existingOnly = found.length > 0 && found.every((candidate) => candidate.status === "existing");
+          const autoApproved = found.filter((candidate) => candidate.status === "auto_approved").length;
           if (existingOnly) {
             toast(`AI search is rate-limited right now — showing ${found.length} match${found.length === 1 ? "" : "es"} already in your directory instead`, { icon: "⚠️" });
+          } else if (autoApproved > 0) {
+            const pending = found.length - autoApproved;
+            toast.success(
+              `${autoApproved} compan${autoApproved === 1 ? "y" : "ies"} auto-verified and added to the directory` +
+                (pending > 0 ? `, ${pending} more waiting for your review` : ""),
+            );
           } else {
             toast.success(found.length ? `Found ${found.length} candidate${found.length === 1 ? "" : "s"} to review` : "No new candidates found for that search");
           }
@@ -121,6 +128,8 @@ function AdminWorkspace() {
                       </span>
                       {candidate.status === "existing" ? (
                         <span className="rounded-full bg-amber-400/10 px-2.5 py-1 text-xs uppercase tracking-wide text-amber-300">Already in directory</span>
+                      ) : candidate.status === "auto_approved" ? (
+                        <span className="rounded-full bg-emerald-400/10 px-2.5 py-1 text-xs uppercase tracking-wide text-emerald-300">Auto-verified &amp; added</span>
                       ) : (
                         <span className="rounded-full bg-white/5 px-2.5 py-1 text-xs uppercase tracking-wide text-zinc-400">{candidate.status}</span>
                       )}

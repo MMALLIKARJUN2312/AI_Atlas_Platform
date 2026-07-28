@@ -6,10 +6,12 @@ from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.admin.discovery_verifier import DiscoveryVerifier
 from app.admin.schemas import CompanyWrite, DiscoveryRequest
 from app.ai.schemas.grounded_llm_response import GroundedLLMResponse
 from app.ai.schemas.llm_request import LLMRequest
 from app.ai.services.llm_service import LLMService
+from app.core.config import settings
 from app.database.models.company import Company
 from app.database.models.company_candidate import CompanyCandidate
 from app.rag.builders.company_builder import CompanyDocumentBuilder
@@ -30,14 +32,30 @@ class AdminService:
         self.indexing = indexing
         self.retrieval = retrieval
         self.company_builder = CompanyDocumentBuilder()
+        self.verifier = DiscoveryVerifier(llm)
 
     async def discover(self, request: DiscoveryRequest) -> list[CompanyCandidate]:
         """
-        Find real candidate companies via LLM-driven web search, then extract
-        structured fields strictly from the grounded search results. A candidate
-        is only ever stored if its name appears in the grounded text AND it has
-        at least one evidence item traceable to a real search-result URL - this
-        is the hallucination gate: nothing is written from the LLM's imagination.
+        Find real candidate companies via LLM-driven web search, extract
+        structured fields strictly from the grounded search results, then
+        independently verify each survivor before deciding whether it needs a
+        human at all.
+
+        Three gates run in order, each one stricter than the last:
+
+        1. Hallucination gate - a candidate is only considered if its name
+           appears in the grounded search text AND it has at least one
+           evidence item traceable to a real search-result URL. Nothing here
+           is ever written from the model's imagination.
+        2. Confidence scoring (DiscoveryVerifier) - evidence breadth, field
+           completeness, website plausibility, and a second independent
+           corroboration search combine into one 0-1 confidence score.
+        3. Auto-store threshold - only candidates scoring at or above
+           DISCOVERY_AUTO_APPROVE_THRESHOLD (default 0.90) are written
+           directly to the company directory and indexed with no human step.
+           Everything between the review floor and that threshold still goes
+           to the human review queue exactly as before; anything weaker than
+           the review floor is dropped rather than cluttering that queue.
 
         If the live web search hits a provider rate limit/quota error, this
         falls back to surfacing already-indexed companies from our own
@@ -56,7 +74,9 @@ class AdminService:
             return []
 
         candidates: list[CompanyCandidate] = []
+        auto_approved: list[Company] = []
         seen: set[str] = set()
+        verifications_used = 0
 
         for item in self._extract_candidates(grounded):
             name = (item.get("name") or "").strip()
@@ -74,6 +94,26 @@ class AdminService:
 
             seen.add(name.casefold())
             website = self._normalize_url(item.get("website", "")) or evidence[0]["url"]
+            self._validate_evidence(evidence)
+
+            if verifications_used < settings.DISCOVERY_MAX_VERIFICATIONS_PER_CALL:
+                confidence, verified = self.verifier.score(
+                    name=name, evidence=evidence, extracted=item, website=website
+                )
+                if verified:
+                    verifications_used += 1
+            else:
+                # Quota guard: past the cap, score from the same signals minus
+                # corroboration. This structurally cannot reach the
+                # auto-approve threshold, so it always lands in human review.
+                confidence, _ = self.verifier.score(
+                    name=name, evidence=evidence, extracted=item, website="" if not website else website
+                )
+                confidence = min(confidence, settings.DISCOVERY_AUTO_APPROVE_THRESHOLD - 0.01)
+
+            if confidence < settings.DISCOVERY_MIN_REVIEW_THRESHOLD:
+                continue  # too weak even for a human reviewer's queue
+
             candidate = CompanyCandidate(
                 name=name,
                 country=request.country,
@@ -82,16 +122,29 @@ class AdminService:
                 use_cases=(item.get("use_cases") or "").strip(),
                 website=website,
                 evidence=evidence,
-                confidence_score=round(min(0.5 + 0.15 * len(evidence), 0.95), 2),
+                confidence_score=confidence,
                 status="pending",
             )
-            self._validate_evidence(candidate.evidence)
+
+            if confidence >= settings.DISCOVERY_AUTO_APPROVE_THRESHOLD:
+                candidate.status = "auto_approved"
+                self.db.add(candidate)
+                company = Company(**self._company_values_from_candidate(candidate))
+                self.db.add(company)
+                candidates.append(candidate)
+                auto_approved.append(company)
+                continue
+
             self.db.add(candidate)
             candidates.append(candidate)
 
         await self.db.commit()
         for candidate in candidates:
             await self.db.refresh(candidate)
+        for company in auto_approved:
+            await self.db.refresh(company)
+            await self.indexing.index_document(self.company_builder.build(company))
+
         return candidates
 
     async def list_candidates(self) -> list[CompanyCandidate]:
