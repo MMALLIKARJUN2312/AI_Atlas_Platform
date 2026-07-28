@@ -16,10 +16,5 @@ class RetrievalPipeline:
     async def retrieve(self, query : str) -> RetrievalOutput:
         results = await self.retriever.retrieve(query)
         context = self.context_builder.build(results)
-        
-        print("=" * 80)
-        print("CONTEXT")
-        print(context)
-        print("=" * 80)
-        
+
         return RetrievalOutput(context=context, results=results)

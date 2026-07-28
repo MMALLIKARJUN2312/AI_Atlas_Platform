@@ -23,31 +23,14 @@ class SemanticRetriever:
 
         rows = await self.vector_store.similarity_search(embedding=query_embedding, top_k=top_k)
 
-        print("=" * 80)
-        print("Retrieved rows:", len(rows))
-
-        for record, score in rows:
-            print(record.chunk_id)
-            print(record.document_id)
-            print(score)
-            print(record.content[:200])
-            print("-" * 40)
-
         if not rows:
             return []
 
         # Highest similarity score
         best_score = float(rows[0][1])
 
-        print(f"Best similarity score: {best_score}")
-
         # Reject the entire retrieval if even the best match is weak
         if best_score < RetrievalConfig.MIN_SIMILARITY_SCORE:
-            print(
-                f"No relevant context found. "
-                f"Best score ({best_score:.4f}) "
-                f"is below threshold ({RetrievalConfig.MIN_SIMILARITY_SCORE})."
-            )
             return []
 
         results: list[RetrievalResult] = []

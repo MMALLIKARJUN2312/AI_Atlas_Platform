@@ -4,6 +4,12 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_database
+from app.agent.agent_service import AgentService
+from app.agent.tool_registry import ToolRegistry
+from app.agent.tools.company_directory_tool import CompanyDirectoryTool
+from app.agent.tools.company_news_tool import CompanyNewsTool
+from app.agent.tools.knowledge_base_tool import KnowledgeBaseTool
+from app.agent.tools.web_search_tool import WebSearchTool
 from app.ai.prompts.prompt_builder import PromptBuilder
 from app.ai.providers.base_llm import BaseLLM
 from app.ai.providers.llm_factory import LLMFactory
@@ -86,6 +92,37 @@ def get_ask_ai_service(
         prompt_builder=prompt_builder,
         llm_service=llm_service,
         citation_service=citation_service,
+    )
+
+
+def get_tool_registry(
+    db: Database,
+    retrieval_pipeline: RetrievalPipeline = Depends(get_retrieval_pipeline),
+    citation_service: CitationService = Depends(get_citation_service),
+    llm_service: LLMService = Depends(get_llm_service),
+) -> ToolRegistry:
+    """
+    The agent's capability surface, assembled per request.
+
+    Tools that touch the database receive the request-scoped session, so a
+    tool never outlives the transaction it was built for.
+    """
+    return ToolRegistry([
+        KnowledgeBaseTool(retrieval_pipeline=retrieval_pipeline, citation_service=citation_service),
+        CompanyDirectoryTool(db=db),
+        CompanyNewsTool(db=db),
+        WebSearchTool(llm_service=llm_service),
+    ])
+
+
+def get_agent_service(
+    llm_service: LLMService = Depends(get_llm_service),
+    registry: ToolRegistry = Depends(get_tool_registry),
+) -> AgentService:
+    return AgentService(
+        llm_service=llm_service,
+        registry=registry,
+        max_iterations=settings.AGENT_MAX_ITERATIONS,
     )
     
 
