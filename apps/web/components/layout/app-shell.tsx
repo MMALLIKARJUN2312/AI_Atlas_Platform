@@ -19,9 +19,6 @@ export function AppShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
 
-  // Close the mobile drawer whenever the route changes, without an effect
-  // (React's documented pattern for adjusting state in response to a prop/
-  // external change: compare against the previous render, update during render).
   const [lastPathname, setLastPathname] = useState(pathname);
   if (pathname !== lastPathname) {
     setLastPathname(pathname);
@@ -30,15 +27,15 @@ export function AppShell({
 
   return (
     <AppBackground>
-      <div className="flex min-h-screen">
+      <div className="flex h-screen overflow-hidden">
         <Sidebar collapsed={collapsed} onToggle={() => setCollapsed((value) => !value)} />
 
         <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} />
 
-        <div className="flex min-h-screen min-w-0 flex-1 flex-col">
+        <div className="flex h-screen min-w-0 flex-1 flex-col overflow-hidden">
           <Topbar onMenuClick={() => setMobileOpen(true)} />
 
-          <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+          <main className="min-w-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
             {children}
           </main>
         </div>

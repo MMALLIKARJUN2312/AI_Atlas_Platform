@@ -24,7 +24,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
   const onAskAI = pathname === "/ask-ai";
 
   return (
-    <header className="sticky top-0 z-30 border-b border-zinc-800 bg-[#111113]/95 backdrop-blur">
+    <header className="border-b border-zinc-800 bg-[#111113]/95 backdrop-blur">
       <div className="flex h-20 items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
         <div className="flex min-w-0 items-center gap-4">
           <button
