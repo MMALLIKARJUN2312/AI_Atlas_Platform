@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Building2, Boxes, BrainCircuit, Layers3 } from "lucide-react";
 
-import { CompanyGrid, CompanySearch, Pagination, SectorFilter } from "@/components/company";
+import { CompanyGrid, CompanySearch, FilterSelect, Pagination, SectorFilter } from "@/components/company";
 
 import { EmptyState, GlassPanel, LoadingSkeleton } from "@/components/ui";
 
@@ -158,39 +158,27 @@ export function CompanyDirectoryPage() {
           <p className="text-slate-400">Showing {companies.length} companies</p>
 
           <div className="grid gap-3 sm:grid-cols-3">
-            <select
+            <FilterSelect
               value={companyType}
-              onChange={(event) => {
-                setCompanyType(event.target.value);
+              onChange={(value) => {
+                setCompanyType(value);
                 setPage(1);
               }}
-              aria-label="Filter by company type"
-              className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
-            >
-              <option value="">All company types</option>
-              {companyTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
+              options={companyTypes}
+              placeholder="All company types"
+              ariaLabel="Filter by company type"
+            />
 
-            <select
+            <FilterSelect
               value={maturity}
-              onChange={(event) => {
-                setMaturity(event.target.value);
+              onChange={(value) => {
+                setMaturity(value);
                 setPage(1);
               }}
-              aria-label="Filter by maturity"
-              className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
-            >
-              <option value="">All maturity levels</option>
-              {maturities.map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
+              options={maturities}
+              placeholder="All maturity levels"
+              ariaLabel="Filter by maturity"
+            />
 
             <input
               value={aiCategory}

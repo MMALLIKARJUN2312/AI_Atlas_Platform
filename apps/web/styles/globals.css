@@ -13,15 +13,6 @@
 @import "./utilities/gradients.css";
 @import "./utilities/scrollbar.css";
 
-/*
- * IMPORTANT: this reset must live inside Tailwind's own `base` layer.
- * `@import "tailwindcss"` registers `@layer theme, base, components, utilities`;
- * any CSS written OUTSIDE a named layer is placed in an implicit layer that
- * the Cascade Layers spec always ranks above every named layer, regardless of
- * selector specificity. An unlayered `* { margin: 0; padding: 0; }` would
- * therefore silently defeat every Tailwind spacing utility (p-*, m-*, space-y-*,
- * ...) app-wide - keeping it in `@layer base` lets `utilities` win as intended.
- */
 @layer base {
   * {
     margin: 0;
@@ -32,6 +23,7 @@
   html {
     scroll-behavior: smooth;
     background-color: var(--color-background);
+    color-scheme: dark;
   }
 
   body {

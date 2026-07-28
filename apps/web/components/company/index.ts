@@ -1,6 +1,7 @@
 export * from "./company-card";
 export * from "./company-details-grid";
 export * from "./company-grid";
+export * from "./filter-select";
 export * from "./company-header";
 export * from "./company-news";
 export * from "./company-overview";
