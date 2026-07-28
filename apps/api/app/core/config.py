@@ -14,9 +14,6 @@ class Settings(BaseSettings):
     
     API_V1_PREFIX: str = "/api/v1"
 
-    # Comma-separated list of allowed browser origins, e.g.
-    # "https://ai-atlas.vercel.app,https://staging.ai-atlas.vercel.app".
-    # Defaults to "*" for zero-friction local development.
     ALLOWED_ORIGINS: str = "*"
 
     POSTGRES_DB : str = Field(default="ai_atlas")
@@ -40,28 +37,20 @@ class Settings(BaseSettings):
     NEWS_SCHEDULER_ENABLED: bool = False
     NEWS_REFRESH_INTERVAL_MINUTES: int = 360
 
-    # Ceiling on the agent's reason-act loop. Each iteration is one LLM call,
-    # so this bounds both latency and cost per question.
     AGENT_MAX_ITERATIONS: int = 5
 
-    # Minimum verification confidence for a discovered company to be written
-    # to the directory with no human review. Below this it becomes a pending
-    # candidate for an admin to approve or reject.
     DISCOVERY_AUTO_APPROVE_THRESHOLD: float = 0.90
-    # Below this a candidate is not even worth a reviewer's attention.
+
     DISCOVERY_MIN_REVIEW_THRESHOLD: float = 0.60
-    # Independent-verification web searches cost a separate, stricter Gemini
-    # grounding quota, so this bounds how many candidates from one discovery
-    # call get a corroboration search. Candidates beyond the cap fall back to
-    # human review instead of failing the request.
+    
     DISCOVERY_MAX_VERIFICATIONS_PER_CALL: int = 5
     
     JWT_SECRET : str = "change-me"
     JWT_ALGORITHM : str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES : int = 60
 
-    ADMIN_EMAIL : str = "admin@aiatlas.local"
-    ADMIN_PASSWORD : str = "change-me"
+    ADMIN_EMAIL : str = "atlasadmin@edu.in"
+    ADMIN_PASSWORD : str = "Atlas@365"
 
 @lru_cache()
 def get_settings() -> Settings:
