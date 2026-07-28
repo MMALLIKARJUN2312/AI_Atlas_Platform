@@ -1,6 +1,7 @@
 import { Bot, User } from "lucide-react";
 
 import { CitationList } from "./citation-list";
+import { ReasoningTrace } from "./reasoning-trace";
 import type { ChatMessage as ChatMessageType } from "@/types/ai";
 
 interface ChatMessageProps {
@@ -18,6 +19,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
       >
         <p className="whitespace-pre-wrap">{message.content}</p>
         {isAssistant ? <CitationList sources={message.sources ?? []} /> : null}
+        {isAssistant ? <ReasoningTrace steps={message.steps ?? []} /> : null}
       </div>
       {!isAssistant ? <MessageIcon /> : null}
     </article>

@@ -29,7 +29,14 @@ export function AskAIPanel() {
       const response = await askAI.mutateAsync(submittedQuestion);
       setMessages((current) => [
         ...current,
-        { id: crypto.randomUUID(), role: "assistant", content: response.answer, sources: response.sources },
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: response.answer,
+          sources: response.sources,
+          steps: response.steps,
+          toolsUsed: response.tools_used,
+        },
       ]);
     } catch {
       // The visible error state below provides a recoverable response without losing the conversation.
@@ -42,7 +49,7 @@ export function AskAIPanel() {
         <div className="flex flex-col items-center gap-2">
           <div className="rounded-xl bg-cyan-400/15 p-2.5 text-cyan-300"><Bot className="h-5 w-5" /></div>
           <h1 className="text-xl font-semibold text-white">Ask AI Atlas</h1>
-          <p className="max-w-md text-sm text-zinc-400">Grounded answers across German food and beverage AI intelligence.</p>
+          <p className="max-w-md text-sm text-zinc-400">An agent that reasons across your directory, company news, and the live web to answer German food and beverage AI questions.</p>
         </div>
         {messages.length > 0 ? (
           <Button
@@ -60,13 +67,13 @@ export function AskAIPanel() {
           <div className="mx-auto max-w-md pt-16 text-center">
             <Bot className="mx-auto h-10 w-10 text-cyan-300" />
             <h2 className="mt-5 text-lg font-semibold text-white">What would you like to explore?</h2>
-            <p className="mt-2 text-sm text-zinc-400">Ask about companies, the problems they solve, market sectors, or recent news.</p>
+            <p className="mt-2 text-sm text-zinc-400">Ask about companies, problems, sectors, or recent news - or anything beyond the directory.</p>
           </div>
         ) : (
           messages.map((message) => <ChatMessageItem key={message.id} message={message} />)
         )}
         {askAI.isPending ? (
-          <div className="flex items-center gap-3 text-sm text-zinc-400"><LoaderCircle className="h-4 w-4 animate-spin text-cyan-300" /> Researching the knowledge base…</div>
+          <div className="flex items-center gap-3 text-sm text-zinc-400"><LoaderCircle className="h-4 w-4 animate-spin text-cyan-300" /> Reasoning through the directory, news, and the web…</div>
         ) : null}
         {askAI.isError ? <p className="rounded-xl border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-200">Your question could not be answered. Please try again.</p> : null}
       </div>

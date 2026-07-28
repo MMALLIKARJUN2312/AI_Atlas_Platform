@@ -4,6 +4,6 @@ import { aiService } from "@/services";
 
 export function useAskAI() {
   return useMutation({
-    mutationFn: (question: string) => aiService.ask(question),
+    mutationFn: (question: string) => aiService.askAgent(question),
   });
 }
